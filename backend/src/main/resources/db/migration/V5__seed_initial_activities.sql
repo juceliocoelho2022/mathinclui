@@ -1,0 +1,3 @@
+INSERT INTO atividades (professor_id, titulo, descricao, ano_escolar, conteudo, dificuldade, tipo_origem, publicada) VALUES (NULL,'Porcentagem no supermercado','Atividade inicial do MathInclui para relacionar porcentagem e educação financeira.',7,'PORCENTAGEM','BASICA','SISTEMA',TRUE);
+INSERT INTO questoes (atividade_id,enunciado,tipo,resposta_correta,explicacao,dica_1,dica_2,dica_3,ordem)
+SELECT id,'Um produto custa R$ 30,00 e recebeu 10% de desconto. Qual é o preço final?','NUMERICA','27','10% de 30 é 3. Então 30 - 3 = 27.','Descubra primeiro quanto é 10% de 30.','10% corresponde a dividir o valor por 10.','30 ÷ 10 = 3. Agora retire 3 de 30.',1 FROM atividades WHERE titulo='Porcentagem no supermercado' AND tipo_origem='SISTEMA';

@@ -1,0 +1,3 @@
+package br.com.mathinclui.auth.token;
+import br.com.mathinclui.auth.security.SubjectType; import org.springframework.data.jpa.repository.*; import org.springframework.data.repository.query.Param; import java.time.Instant; import java.util.Optional;
+public interface RefreshTokenRepository extends JpaRepository<RefreshTokenSession,Long> { Optional<RefreshTokenSession> findByJti(String jti); @Modifying @Query("update RefreshTokenSession r set r.revokedAt = :now where r.subjectType = :subjectType and r.subjectId = :subjectId and r.revokedAt is null") int revokeAllActive(@Param("subjectType") SubjectType subjectType,@Param("subjectId") Long subjectId,@Param("now") Instant now); }
