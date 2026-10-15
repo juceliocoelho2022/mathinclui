@@ -1,0 +1,2 @@
+package br.com.mathinclui.system;
+public final class SystemInfoContractTest { public static void main(String[] args){var info=SystemInfoProvider.current();if(!"MathInclui".equals(info.name()))throw new AssertionError("name");if(!"0.1.0".equals(info.version()))throw new AssertionError("version");if(!"UP".equals(info.status()))throw new AssertionError("status");System.out.println("SYSTEM_INFO_CONTRACT_OK");} }

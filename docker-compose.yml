@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-mathinclui}
+      POSTGRES_USER: ${DB_USER:-mathinclui}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mathinclui_dev}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - mathinclui_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mathinclui} -d ${DB_NAME:-mathinclui}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-mathinclui}
+      DB_USER: ${DB_USER:-mathinclui}
+      DB_PASSWORD: ${DB_PASSWORD:-mathinclui_dev}
+      SERVER_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-900}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-604800}
+      LOGIN_MAX_ATTEMPTS: ${LOGIN_MAX_ATTEMPTS:-5}
+      LOGIN_BLOCK_SECONDS: ${LOGIN_BLOCK_SECONDS:-900}
+      PASSWORD_RESET_TTL: ${PASSWORD_RESET_TTL:-1800}
+      PASSWORD_RESET_LOG_TOKEN: ${PASSWORD_RESET_LOG_TOKEN:-false}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          wget -qO- http://localhost:8080/actuator/health |
+          grep -q '"status":"UP"'
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mathinclui_postgres_data:
