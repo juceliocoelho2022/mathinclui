@@ -17,10 +17,10 @@ vi.mock('../../services/gestaoEscolarApi', async () => {
   const actual = await vi.importActual<typeof import('../../services/gestaoEscolarApi')>('../../services/gestaoEscolarApi');
   return { ...actual, listarTurmas: mocks.listarTurmas, listarAlunos: mocks.listarAlunos };
 });
-vi.mock('../../services/acessibilidadeApi', () => ({
-  salvarAdaptacaoGeral: mocks.salvarAdaptacaoGeral,
-  salvarAdaptacaoIndividual: mocks.salvarAdaptacaoIndividual,
-}));
+vi.mock('../../services/acessibilidadeApi', async () => {
+  const actual = await vi.importActual<typeof import('../../services/acessibilidadeApi')>('../../services/acessibilidadeApi');
+  return { ...actual, salvarAdaptacaoGeral: mocks.salvarAdaptacaoGeral, salvarAdaptacaoIndividual: mocks.salvarAdaptacaoIndividual };
+});
 
 import { AtribuirAtividadePanel } from './AtribuirAtividadePanel';
 
