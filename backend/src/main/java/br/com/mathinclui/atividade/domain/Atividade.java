@@ -1,57 +1,27 @@
 package br.com.mathinclui.atividade.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "atividades")
 public class Atividade {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Column(name = "professor_id") private Long professorId;
+    @Column(nullable = false, length = 160) private String titulo;
+    @Column(columnDefinition = "TEXT") private String descricao;
+    @Column(name = "ano_escolar", nullable = false) private short anoEscolar;
+    @Column(nullable = false, length = 60) private String conteudo;
+    @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private DificuldadeAtividade dificuldade;
+    @Enumerated(EnumType.STRING) @Column(name = "tipo_origem", nullable = false, length = 20) private TipoOrigemAtividade tipoOrigem;
+    @Column(nullable = false) private boolean publicada;
+    @Column(name = "limite_tentativas", nullable = false) private int limiteTentativas = 3;
+    @Column(name = "origem_atividade_id") private Long origemAtividadeId;
+    @Column(name = "copiado_em") private Instant copiadoEm;
+    @Column(name = "criado_em", nullable = false, insertable = false, updatable = false) private Instant criadoEm;
 
-    @Column(name = "professor_id")
-    private Long professorId;
-
-    @Column(nullable = false, length = 160)
-    private String titulo;
-
-    @Column(columnDefinition = "TEXT")
-    private String descricao;
-
-    @Column(name = "ano_escolar", nullable = false)
-    private short anoEscolar;
-
-    @Column(nullable = false, length = 60)
-    private String conteudo;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private DificuldadeAtividade dificuldade;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_origem", nullable = false, length = 20)
-    private TipoOrigemAtividade tipoOrigem;
-
-    @Column(nullable = false)
-    private boolean publicada;
-
-    @Column(name = "limite_tentativas", nullable = false)
-    private int limiteTentativas = 3;
-
-    @Column(name = "criado_em", nullable = false, insertable = false, updatable = false)
-    private Instant criadoEm;
-
-    protected Atividade() {
-    }
+    protected Atividade() {}
 
     public Atividade(Long professorId, String titulo, String descricao, short anoEscolar,
                      String conteudo, DificuldadeAtividade dificuldade, int limiteTentativas) {
@@ -69,17 +39,19 @@ public class Atividade {
         aplicar(titulo, descricao, anoEscolar, conteudo, dificuldade, limiteTentativas);
     }
 
-    public void publicar() {
-        this.publicada = true;
+    public void publicar() { this.publicada = true; }
+
+    public void registrarCopiaDe(Long origemAtividadeId, Instant copiadoEm) {
+        if (origemAtividadeId == null || copiadoEm == null) throw new IllegalArgumentException("Origem e data da cópia são obrigatórias.");
+        this.origemAtividadeId = origemAtividadeId;
+        this.copiadoEm = copiadoEm;
     }
 
     public boolean pertenceAoProfessor(Long professorId) {
         return tipoOrigem == TipoOrigemAtividade.PROFESSOR && this.professorId != null && this.professorId.equals(professorId);
     }
 
-    public boolean isSistemaPublicada() {
-        return tipoOrigem == TipoOrigemAtividade.SISTEMA && publicada;
-    }
+    public boolean isSistemaPublicada() { return tipoOrigem == TipoOrigemAtividade.SISTEMA && publicada; }
 
     private void aplicar(String titulo, String descricao, short anoEscolar, String conteudo,
                          DificuldadeAtividade dificuldade, int limiteTentativas) {
@@ -110,5 +82,7 @@ public class Atividade {
     public TipoOrigemAtividade getTipoOrigem() { return tipoOrigem; }
     public boolean isPublicada() { return publicada; }
     public int getLimiteTentativas() { return limiteTentativas; }
+    public Long getOrigemAtividadeId() { return origemAtividadeId; }
+    public Instant getCopiadoEm() { return copiadoEm; }
     public Instant getCriadoEm() { return criadoEm; }
 }
