@@ -23,7 +23,7 @@ A v0.5 deverá:
 
 - aplicar adaptações automáticas a partir do perfil pedagógico do aluno;
 - permitir adaptações adicionais por atribuição/turma;
-- permitir sobrescritas individuais por aluno dentro de uma atribuição;
+- permitir sobrescritas individuais por aluno dentro de uma atribuição de turma;
 - permitir ao aluno alterar apenas preferências de interface;
 - persistir essas preferências entre sessões;
 - impedir que o aluno reduza o mínimo de acessibilidade definido pedagogicamente;
@@ -73,14 +73,14 @@ A configuração efetiva será derivada de quatro fontes:
 
 1. perfil pedagógico do aluno;
 2. adaptação da atribuição;
-3. adaptação individual da atribuição para o aluno;
+3. adaptação individual da atribuição para o aluno, quando a atribuição for de turma;
 4. preferência pessoal de interface do aluno.
 
 A regra não será “último valor vence”. Para recursos que representam apoio pedagógico, a composição será monotônica: uma camada posterior pode aumentar o apoio, mas não reduzi-lo abaixo do mínimo já estabelecido.
 
 ### 4.2 Configuração efetiva
 
-Será introduzido um objeto de domínio, não necessariamente persistido, chamado conceitualmente `ConfiguracaoAcessibilidadeEfetiva`.
+Será introduzido um objeto de domínio, não persistido como fonte de verdade, chamado `ConfiguracaoAcessibilidadeEfetiva`.
 
 Ele deverá expor, no mínimo:
 
@@ -126,7 +126,7 @@ Exemplos:
 
 #### Booleanos de apoio
 
-Para campos como `leituraVoz`, `apoioVisual`, `dicasPassoAPasso`, `repeticaoGuiada` e `tempoAmpliado`, `true` representa maior apoio. `null` representa herança nas tabelas de override.
+Para campos como `leituraVoz`, `apoioVisual`, `dicasPassoAPasso`, `repeticaoGuiada` e `tempoAmpliado`, `true` representa maior apoio. Nas tabelas de adaptação, `null` significa herança e `false` significa apenas “esta camada não adiciona esse apoio”; `false` nunca força o desligamento de um `true` já estabelecido por camada anterior.
 
 O valor efetivo será verdadeiro se qualquer camada pedagógica aplicável exigir o recurso. A preferência do aluno poderá ativar recursos de interface opcionais, mas não desligar os obrigatórios.
 
@@ -154,7 +154,7 @@ O valor efetivo será o maior nível pedagógico aplicável.
 
 ### 4.6 Tempo ampliado
 
-Na v0.5, `tempoAmpliado` continuará booleano. Não será introduzido um novo cronômetro de prova ou cálculo de minutos adicionais. O campo servirá como política de experiência e preparação para evolução futura sem criar um subsistema de temporização nesta versão.
+Na v0.5, `tempoAmpliado` continuará booleano, será preservado na configuração efetiva e poderá orientar a ausência de elementos de pressão temporal. A v0.5 não introduzirá prova cronometrada, contagem regressiva nem cálculo de minutos adicionais; portanto, esse campo não altera uma duração inexistente no fluxo atual.
 
 ### 4.7 Leitura em voz
 
@@ -215,6 +215,8 @@ Campos conceituais:
 
 `null` significa herdar.
 
+Em uma atribuição direta para um aluno, esta tabela já representa a adaptação específica daquele aluno e não haverá segunda camada individual redundante.
+
 ### 5.3 `adaptacoes_aluno_atribuicao`
 
 Campos conceituais:
@@ -224,17 +226,21 @@ Campos conceituais:
 - os mesmos campos opcionais de adaptação;
 - constraint única em `atribuicao_id + aluno_id`.
 
+Essa tabela só será válida quando a atribuição tiver como destino uma turma. O aluno informado deve pertencer à turma da atribuição e ao domínio do professor autenticado.
+
 Uma adaptação individual pode aumentar o apoio em relação à adaptação geral, mas não reduzir o mínimo já estabelecido pelo perfil ou pela atribuição.
+
+Tentativa de criar adaptação individual para uma atribuição direta de aluno deverá ser rejeitada como conflito de estado.
 
 ## 6. Serviço de acessibilidade
 
-Será criado um serviço conceitualmente chamado `AcessibilidadeEfetivaService`.
+Será criado `AcessibilidadeEfetivaService`.
 
 Responsabilidades:
 
 - carregar perfil pedagógico;
 - carregar adaptação da atribuição;
-- carregar adaptação individual;
+- carregar adaptação individual quando aplicável;
 - carregar preferência do aluno;
 - validar que a atribuição pertence ao aluno;
 - aplicar as regras de precedência;
@@ -246,7 +252,7 @@ O frontend não deverá reproduzir o algoritmo de merge.
 
 ### 7.1 Professor
 
-Rotas previstas:
+Rotas:
 
 - `GET /api/v1/atribuicoes/{id}/adaptacao`;
 - `PUT /api/v1/atribuicoes/{id}/adaptacao`;
@@ -254,11 +260,11 @@ Rotas previstas:
 - `PUT /api/v1/atribuicoes/{id}/alunos/{alunoId}/adaptacao`;
 - `DELETE /api/v1/atribuicoes/{id}/alunos/{alunoId}/adaptacao`.
 
-O professor só poderá operar em atribuições sob seu domínio.
+O professor só poderá operar em atribuições sob seu domínio. As rotas com `alunoId` só são válidas para atribuições de turma e somente para alunos pertencentes à turma alvo.
 
 ### 7.2 Aluno
 
-Rotas previstas:
+Rotas:
 
 - `GET /api/v1/aluno/atribuicoes/{id}/acessibilidade`;
 - `GET /api/v1/aluno/preferencias-interface`;
@@ -299,7 +305,7 @@ Não haverá perfil `ADMIN` nem fluxo colaborativo de publicação na v0.5.
 
 ### 8.3 Cópia de atividades
 
-Ao selecionar “Usar atividade”, o backend fará uma cópia profunda e transacional da atividade oficial ou pessoal permitida.
+Ao selecionar “Usar atividade”, o backend fará uma cópia profunda e transacional da atividade oficial ou de uma atividade pessoal pertencente ao próprio professor.
 
 A cópia incluirá:
 
@@ -321,6 +327,8 @@ A nova atividade:
 - pode ser editada antes de publicação;
 - mantém rastreabilidade da origem, sem sincronização automática.
 
+A rastreabilidade usará campos equivalentes a `origem_atividade_id` e `copiado_em`. `origem_atividade_id` será apenas proveniência, nunca fonte viva de conteúdo; se for implementado como FK para conteúdo pessoal removível, deverá usar comportamento que não bloqueie nem apague a cópia, como `ON DELETE SET NULL`.
+
 Alterações futuras na fonte não modificam cópias já criadas.
 
 ### 8.4 Questões reutilizáveis
@@ -335,9 +343,11 @@ O fluxo será:
 
 Uma mesma linha de questão concreta nunca será compartilhada por várias atividades.
 
+Quando uma questão concreta for importada de um modelo, poderá guardar `origem_questao_modelo_id` apenas para proveniência. Essa referência não poderá criar dependência de edição ou exclusão; se houver FK, deverá usar `ON DELETE SET NULL`.
+
 ### 8.5 `QuestaoModelo`
 
-Campos conceituais mínimos:
+Campos mínimos:
 
 - `id`;
 - `professor_id` nullable;
@@ -356,7 +366,7 @@ Campos conceituais mínimos:
 - `dificuldade`;
 - `criado_em`.
 
-Para múltipla escolha haverá `alternativas_modelo`.
+Para múltipla escolha haverá `alternativas_modelo` com exatamente uma alternativa correta quando o modelo for considerado válido para reutilização.
 
 ### 8.6 Criação da biblioteca pessoal de questões
 
@@ -368,7 +378,7 @@ Salvar no banco cria uma cópia independente da questão atual. Edições futura
 
 ### 9.1 Catálogo BNCC
 
-Será criado um catálogo global de habilidades com campos conceituais:
+Será criado um catálogo global de habilidades com campos:
 
 - `id`;
 - `codigo`;
@@ -385,6 +395,8 @@ Uma atividade poderá possuir várias habilidades por meio de relação N:N.
 
 Uma `QuestaoModelo` também poderá possuir uma ou mais habilidades.
 
+Uma questão concreta importada de `QuestaoModelo` poderá ser relacionada à habilidade por sua proveniência; atividades e questões criadas manualmente sem modelo continuam válidas mesmo sem essa associação.
+
 Essas relações prepararão a v0.6 para relatórios por habilidade sem alterar o motor de tentativas.
 
 ## 10. Tags pessoais
@@ -398,7 +410,7 @@ Exemplos:
 - revisão;
 - avaliação diagnóstica.
 
-Estruturas conceituais:
+Estruturas:
 
 - `tags_professor`;
 - `atividade_tag`;
@@ -410,12 +422,16 @@ A unicidade deverá ser aplicada por professor de forma normalizada para evitar 
 
 ## 11. APIs da biblioteca
 
-Consultas previstas:
+### 11.1 Consulta
 
 - `GET /api/v1/biblioteca/atividades`;
 - `GET /api/v1/biblioteca/atividades/{id}`;
 - `GET /api/v1/biblioteca/questoes`;
-- `GET /api/v1/biblioteca/questoes/{id}`.
+- `GET /api/v1/biblioteca/questoes/{id}`;
+- `GET /api/v1/biblioteca/bncc/habilidades`;
+- `GET /api/v1/biblioteca/tags`.
+
+Listas de atividades e questões serão paginadas.
 
 Filtros suportados deverão incluir, quando aplicável:
 
@@ -431,13 +447,22 @@ Filtros suportados deverão incluir, quando aplicável:
 - busca textual;
 - paginação.
 
-Cópia e importação:
+### 11.2 Cópia, importação e modelos pessoais
 
-- `POST /api/v1/biblioteca/atividades/{id}/copiar`;
-- `POST /api/v1/biblioteca/questoes/{id}/copiar`;
-- `POST /api/v1/atividades/{atividadeId}/questoes/importar`.
+- `POST /api/v1/biblioteca/atividades/{id}/copiar` — cria atividade pessoal independente;
+- `POST /api/v1/biblioteca/questoes/{id}/copiar` — duplica um `QuestaoModelo` permitido para a biblioteca pessoal do professor;
+- `POST /api/v1/atividades/{atividadeId}/questoes/importar` — copia um ou mais `QuestaoModelo` para questões concretas da atividade;
+- `POST /api/v1/atividades/{atividadeId}/questoes/{questaoId}/salvar-modelo` — salva uma cópia da questão concreta como `QuestaoModelo` pessoal.
 
-Para salvar uma questão concreta na biblioteca pessoal, haverá comando explícito de serviço/API a ser nomeado no plano de implementação, preservando a semântica “Salvar no banco”.
+A importação múltipla receberá uma coleção de IDs de modelos e será transacional.
+
+### 11.3 Tags
+
+- `POST /api/v1/biblioteca/tags`;
+- `PUT /api/v1/biblioteca/tags/{id}`;
+- `DELETE /api/v1/biblioteca/tags/{id}`.
+
+Todos os comandos de tags exigem ownership do professor autenticado.
 
 PostgreSQL será suficiente para busca na v0.5. Não será introduzido Elasticsearch nem busca semântica.
 
@@ -473,7 +498,7 @@ O fluxo de atribuição ganhará uma etapa opcional de adaptações.
 
 Por padrão, a atribuição usa os perfis pedagógicos individuais dos alunos.
 
-O professor poderá acrescentar apoio geral à atribuição e configurar exceções individuais.
+O professor poderá acrescentar apoio geral à atribuição e, para atribuições de turma, configurar exceções individuais.
 
 Essas configurações representam mínimos de apoio e não reduzem o perfil pedagógico.
 
@@ -495,7 +520,7 @@ Se um recurso for obrigatório, a interface deverá explicar que ele faz parte d
 
 ### 13.3 Preferências globais
 
-Será disponibilizada uma tela de preferências, conceitualmente em:
+Será disponibilizada a rota:
 
 - `/app/minhas-preferencias`.
 
@@ -537,7 +562,8 @@ A autorização de URL não substitui autorização de domínio. Serviços dever
 
 - professor A alterar atribuição do professor B;
 - professor A ler/editar tags privadas do professor B;
-- professor A copiar conteúdo pessoal do professor B sem permissão;
+- professor A copiar conteúdo pessoal do professor B;
+- professor configurar adaptação individual para aluno fora da turma alvo;
 - aluno A ler preferências ou adaptação de aluno B;
 - aluno acessar biblioteca administrativa;
 - professor editar conteúdo `SISTEMA`.
@@ -552,7 +578,7 @@ A API de acessibilidade nunca deverá transportar gabarito.
 
 ## 15. Integridade transacional
 
-Cópias de atividade e importações de várias questões serão transacionais.
+Cópias de atividade, duplicações de modelos e importações de várias questões serão transacionais.
 
 Se qualquer etapa falhar, nenhuma cópia parcial permanecerá.
 
@@ -565,7 +591,7 @@ A API deverá responder de forma consistente:
 - `400` para configuração inválida, ano fora da faixa ou payload inválido;
 - `403` para acesso a recurso de outro usuário ou role inadequada;
 - `404` para recurso inexistente ou inacessível quando apropriado;
-- `409` para conflito de estado, duplicidade ou tentativa de alteração destrutiva com histórico.
+- `409` para conflito de estado, duplicidade, adaptação individual em atribuição direta de aluno ou tentativa de alteração destrutiva com histórico.
 
 Detalhes SQL, stack traces e informações internas não serão expostos ao frontend.
 
@@ -575,14 +601,14 @@ As migrations existentes `V1` a `V8` permanecem intocadas.
 
 A v0.5 começará em `V9`.
 
-A decomposição inicial prevista é:
+A decomposição prevista é:
 
 - `V9` — estruturas de acessibilidade;
-- `V10` — biblioteca, modelos e metadados curriculares;
+- `V10` — biblioteca, modelos, proveniência, tags e metadados curriculares;
 - `V11` — catálogo BNCC validado;
 - `V12` — conteúdo oficial inicial.
 
-Os nomes exatos podem ser refinados no plano, preservando essa ordem lógica.
+Os nomes exatos dos arquivos serão definidos no plano de implementação, preservando essa ordem lógica e sem renumerar migrations já aplicadas.
 
 As migrations deverão funcionar:
 
@@ -619,21 +645,26 @@ A implementação seguirá TDD.
 - aluno pode aumentar fonte;
 - leitura obrigatória não pode ser desligada;
 - apoio visual obrigatório prevalece;
+- `false` em camada posterior não desliga apoio anterior;
 - `questoesPorTela` escolhe maior apoio;
 - `nivelApoio` escolhe maior apoio;
 - `null` herda;
 - adaptação individual pode aumentar apoio;
+- adaptação individual não pode reduzir apoio;
 - preferência de interface não modifica regra pedagógica.
 
 Serviços da biblioteca deverão provar:
 
 - cópia de atividade oficial;
+- cópia de atividade pessoal própria;
+- bloqueio de cópia de atividade pessoal de outro professor;
 - propriedade correta da cópia;
 - cópia nasce não publicada;
 - questões e alternativas são copiadas;
-- origem é rastreada;
+- origem é rastreada sem dependência viva;
 - edição da cópia não modifica o original;
 - importação de questão cria nova questão concreta independente;
+- duplicação de modelo oficial cria modelo pessoal independente;
 - “Salvar no banco” cria `QuestaoModelo` independente.
 
 ### 19.2 Integração PostgreSQL
@@ -643,8 +674,10 @@ Testcontainers deverá validar:
 - migrations completas;
 - FKs das preferências;
 - unicidade de adaptação individual;
+- rejeição de adaptação individual fora de atribuição de turma;
 - isolamento de tags;
 - relações BNCC;
+- proveniência com exclusão segura da origem;
 - cópia transacional;
 - constraints de `QuestaoModelo` e alternativas;
 - preservação de histórico.
@@ -655,6 +688,7 @@ Testes deverão provar:
 
 - `ROLE_ALUNO` não acessa biblioteca;
 - professor não acessa recursos de outro professor;
+- professor não configura adaptação de aluno fora da turma alvo;
 - aluno não acessa recursos de outro aluno;
 - conteúdo `SISTEMA` não pode ser alterado por professor;
 - APIs de aluno não aceitam identidade arbitrária para trocar o sujeito autenticado.
@@ -667,6 +701,7 @@ Vitest + Testing Library deverão cobrir:
 - paginação e estados de erro;
 - cópia de atividade;
 - seleção/importação de múltiplas questões;
+- salvar questão no banco pessoal;
 - prevenção de dupla submissão no frontend;
 - barra de acessibilidade;
 - persistência de preferência;
@@ -683,18 +718,19 @@ O cenário de aceite da v0.5 será:
 3. filtra conteúdo oficial;
 4. visualiza e copia uma atividade;
 5. adiciona uma ou mais questões reutilizáveis;
-6. edita e publica a cópia;
-7. atribui à turma;
-8. define apoio adicional geral;
-9. configura uma adaptação individual para um aluno;
-10. aluno autentica e abre a atividade;
-11. backend entrega configuração efetiva;
-12. interface se adapta;
-13. aluno aumenta um recurso de interface permitido;
-14. preferência é persistida;
-15. aluno erra, recebe apoio progressivo e conclui;
-16. aluno sai e entra novamente e a preferência permanece;
-17. conteúdo oficial e modelos de origem permanecem intactos.
+6. salva uma questão própria como modelo reutilizável;
+7. edita e publica a atividade;
+8. atribui à turma;
+9. define apoio adicional geral;
+10. configura uma adaptação individual para um aluno da turma;
+11. aluno autentica e abre a atividade;
+12. backend entrega configuração efetiva;
+13. interface se adapta;
+14. aluno aumenta um recurso de interface permitido;
+15. preferência é persistida;
+16. aluno erra, recebe apoio progressivo e conclui;
+17. aluno sai e entra novamente e a preferência permanece;
+18. conteúdo oficial e modelos de origem permanecem intactos.
 
 ## 21. Compatibilidade
 
