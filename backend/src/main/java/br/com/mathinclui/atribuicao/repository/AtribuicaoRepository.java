@@ -19,4 +19,7 @@ public interface AtribuicaoRepository extends JpaRepository<Atribuicao, Long> {
                                               @Param("turmaId") Long turmaId,
                                               @Param("status") StatusAtribuicao status,
                                               @Param("agora") Instant agora);
+
+    @Query("select a from Atribuicao a where a.status <> br.com.mathinclui.atribuicao.domain.StatusAtribuicao.CANCELADA and (a.alunoId = :alunoId or a.turmaId = :turmaId) order by a.criadoEm desc")
+    List<Atribuicao> findTodasParaAluno(@Param("alunoId") Long alunoId, @Param("turmaId") Long turmaId);
 }
