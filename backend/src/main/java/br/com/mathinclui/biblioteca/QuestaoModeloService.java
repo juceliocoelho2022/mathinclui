@@ -1,7 +1,6 @@
 package br.com.mathinclui.biblioteca;
 
 import br.com.mathinclui.atividade.AtividadeService;
-import br.com.mathinclui.atividade.domain.DificuldadeAtividade;
 import br.com.mathinclui.biblioteca.domain.AlternativaModelo;
 import br.com.mathinclui.biblioteca.domain.QuestaoModelo;
 import br.com.mathinclui.biblioteca.domain.TipoOrigemBiblioteca;
@@ -88,11 +87,14 @@ public class QuestaoModeloService {
                 questao.getDica2(), questao.getDica3(), questao.getImagemUrl(), questao.getLimiteTentativas(),
                 request.anoEscolar(), request.conteudo(), request.dificuldade());
         modelo = modeloRepository.save(modelo);
+        var alternativasSalvas = new ArrayList<AlternativaModeloResponse>();
         for (Alternativa a : alternativas) {
-            alternativaModeloRepository.save(new AlternativaModelo(modelo.getId(), a.getTexto(), a.isCorreta(), a.getOrdem()));
+            AlternativaModelo salva = alternativaModeloRepository.save(
+                    new AlternativaModelo(modelo.getId(), a.getTexto(), a.isCorreta(), a.getOrdem()));
+            alternativasSalvas.add(AlternativaModeloResponse.from(salva));
         }
         salvarClassificacao(modelo.getId(), request.habilidadeIds(), request.tagIds());
-        return response(modelo);
+        return response(modelo, alternativasSalvas);
     }
 
     @Transactional
@@ -104,14 +106,17 @@ public class QuestaoModeloService {
                 fonte.getConteudo(), fonte.getDificuldade());
         copia.registrarCopiaDe(modeloId, clock.instant());
         copia = modeloRepository.save(copia);
+        var alternativasSalvas = new ArrayList<AlternativaModeloResponse>();
         for (AlternativaModelo a : alternativaModeloRepository.findAllByQuestaoModeloIdOrderByOrdemAsc(modeloId)) {
-            alternativaModeloRepository.save(new AlternativaModelo(copia.getId(), a.getTexto(), a.isCorreta(), a.getOrdem()));
+            AlternativaModelo salva = alternativaModeloRepository.save(
+                    new AlternativaModelo(copia.getId(), a.getTexto(), a.isCorreta(), a.getOrdem()));
+            alternativasSalvas.add(AlternativaModeloResponse.from(salva));
         }
         List<Long> habilidades = ids("SELECT habilidade_id FROM questao_modelo_habilidade_bncc WHERE questao_modelo_id=:id", modeloId);
         List<Long> tags = fonte.getTipoOrigem() == TipoOrigemBiblioteca.PROFESSOR
                 ? ids("SELECT tag_id FROM questao_modelo_tag WHERE questao_modelo_id=:id", modeloId) : List.of();
         salvarClassificacao(copia.getId(), habilidades, tags);
-        return response(copia);
+        return response(copia, alternativasSalvas);
     }
 
     @Transactional
@@ -191,6 +196,10 @@ public class QuestaoModeloService {
     private QuestaoModeloResponse response(QuestaoModelo modelo) {
         var alternativas = alternativaModeloRepository.findAllByQuestaoModeloIdOrderByOrdemAsc(modelo.getId()).stream()
                 .map(AlternativaModeloResponse::from).toList();
+        return response(modelo, alternativas);
+    }
+
+    private QuestaoModeloResponse response(QuestaoModelo modelo, List<AlternativaModeloResponse> alternativas) {
         return QuestaoModeloResponse.from(modelo, alternativas,
                 ids("SELECT habilidade_id FROM questao_modelo_habilidade_bncc WHERE questao_modelo_id=:id", modelo.getId()),
                 ids("SELECT tag_id FROM questao_modelo_tag WHERE questao_modelo_id=:id", modelo.getId()));
