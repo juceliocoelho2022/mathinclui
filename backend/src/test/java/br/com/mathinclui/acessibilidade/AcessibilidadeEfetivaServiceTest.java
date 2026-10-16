@@ -49,9 +49,6 @@ class AcessibilidadeEfetivaServiceTest {
         when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(new Aluno(turmaId, "Ana", "ana", "hash")));
         when(atribuicaoRepository.findById(atribuicaoId)).thenReturn(Optional.of(
                 new Atribuicao(1L, 2L, turmaId, null, Instant.parse("2026-10-16T00:00:00Z"), null)));
-        when(adaptacaoRepository.findById(atribuicaoId)).thenReturn(Optional.empty());
-        when(adaptacaoAlunoRepository.findByAtribuicaoIdAndAlunoId(atribuicaoId, alunoId)).thenReturn(Optional.empty());
-        when(preferenciaRepository.findById(alunoId)).thenReturn(Optional.empty());
     }
 
     @Test
