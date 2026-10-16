@@ -18,3 +18,5 @@ Ruling: A temporary branch-only workflow `v05-dev-ci.yml` is execution tooling n
 Preflight: baseline run 38968331710 — backend GREEN, frontend GREEN/build GREEN, structural GREEN.
 Task 1: RED observed in run 38968496397 — Flyway v8, 3 accessibility tables absent; 53 tests, expected V9 failures only. GREEN observed in run 38968600360 — backend full suite PASS, frontend PASS/build PASS, structural PASS.
 Task 1: complete (commits 0f837b7..7271e83, tests: full GitHub Actions backend suite → PASS)
+Task 2: RED observed in run 38968790062 — testCompile failed because accessibility domain/repositories/services did not exist. First GREEN attempt run 38969028838 exposed only Mockito UnnecessaryStubbing in the 404 test; root cause was three global stubs not reached on the early-return path, not a production failure. Removed those stubs. GREEN observed in run 38969232817 — backend full suite PASS, frontend PASS/build PASS, structural PASS.
+Task 2: complete (commits 17e10e5..d175281, tests: full GitHub Actions backend suite → PASS)
