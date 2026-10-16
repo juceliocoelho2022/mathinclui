@@ -26,3 +26,6 @@ Task 4: RED observed in run 38969813488 — Flyway stopped at V9; library tables
 Task 4: Ruling: migration feature tests must assert their migration is present (`current >= N`), while only the release-head migration may assert an exact final version — otherwise every later additive migration breaks earlier feature tests without a product regression. Cost if wrong: a missing V9 could theoretically be masked by a later version number, but all V9 tables/constraints remain separately asserted in the same test class.
 Task 4: GREEN observed in run 38970287393 — backend full suite PASS, frontend PASS/build PASS, structural PASS after making V9 version assertion forward-compatible.
 Task 4: complete (commits eb2de04..880546f, tests: full GitHub Actions backend suite → PASS)
+Task 5: RED observed in run 38970621493 — library service/filter/classification/tag contracts absent at testCompile. Production implementation compiled and behavioral tests passed in run 38970923292; only two strict-Mockito unused stubs remained in the system-source deep-copy test. Removed those test-only stubs.
+Task 5: GREEN observed in run 38971110015 — backend full suite PASS, frontend tests/build PASS, structural PASS.
+Task 5: complete (commits b4c80b7..318c271, tests: full GitHub Actions backend suite → PASS)
