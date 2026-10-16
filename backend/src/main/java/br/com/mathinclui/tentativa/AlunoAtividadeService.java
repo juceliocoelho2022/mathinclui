@@ -1,16 +1,15 @@
 package br.com.mathinclui.tentativa;
 
+import br.com.mathinclui.acessibilidade.AcessibilidadeEfetivaService;
+import br.com.mathinclui.acessibilidade.ConfiguracaoAcessibilidadeResponse;
 import br.com.mathinclui.aluno.domain.Aluno;
 import br.com.mathinclui.aluno.repository.AlunoRepository;
 import br.com.mathinclui.atividade.domain.Atividade;
 import br.com.mathinclui.atividade.repository.AtividadeRepository;
 import br.com.mathinclui.atribuicao.domain.Atribuicao;
 import br.com.mathinclui.atribuicao.repository.AtribuicaoRepository;
-import br.com.mathinclui.perfilpedagogico.PerfilPedagogicoResponse;
-import br.com.mathinclui.perfilpedagogico.repository.PerfilPedagogicoRepository;
 import br.com.mathinclui.questao.repository.AlternativaRepository;
 import br.com.mathinclui.questao.repository.QuestaoRepository;
-import br.com.mathinclui.resposta.domain.Resposta;
 import br.com.mathinclui.resposta.repository.RespostaRepository;
 import br.com.mathinclui.resposta.repository.RespostaTentativaRepository;
 import br.com.mathinclui.tentativa.domain.StatusTentativa;
@@ -34,14 +33,14 @@ public class AlunoAtividadeService {
     private final TentativaRepository tentativaRepository;
     private final RespostaRepository respostaRepository;
     private final RespostaTentativaRepository historicoRepository;
-    private final PerfilPedagogicoRepository perfilRepository;
+    private final AcessibilidadeEfetivaService acessibilidadeService;
     private final Clock clock;
 
     public AlunoAtividadeService(AlunoRepository alunoRepository, AtribuicaoRepository atribuicaoRepository,
                                  AtividadeRepository atividadeRepository, QuestaoRepository questaoRepository,
                                  AlternativaRepository alternativaRepository, TentativaRepository tentativaRepository,
                                  RespostaRepository respostaRepository, RespostaTentativaRepository historicoRepository,
-                                 PerfilPedagogicoRepository perfilRepository, Clock clock) {
+                                 AcessibilidadeEfetivaService acessibilidadeService, Clock clock) {
         this.alunoRepository = alunoRepository;
         this.atribuicaoRepository = atribuicaoRepository;
         this.atividadeRepository = atividadeRepository;
@@ -50,7 +49,7 @@ public class AlunoAtividadeService {
         this.tentativaRepository = tentativaRepository;
         this.respostaRepository = respostaRepository;
         this.historicoRepository = historicoRepository;
-        this.perfilRepository = perfilRepository;
+        this.acessibilidadeService = acessibilidadeService;
         this.clock = clock;
     }
 
@@ -69,7 +68,7 @@ public class AlunoAtividadeService {
         var atribuicao = obterAtribuicaoDoAluno(aluno, atribuicaoId);
         var atividade = atividade(atribuicao.getAtividadeId());
         var tentativa = tentativaRepository.findByAtribuicaoIdAndAlunoId(atribuicaoId, alunoId).orElse(null);
-        var perfil = perfilRepository.findByAlunoId(alunoId).map(PerfilPedagogicoResponse::from).orElse(null);
+        var acessibilidade = ConfiguracaoAcessibilidadeResponse.from(acessibilidadeService.calcular(alunoId, atribuicaoId));
         var questoes = questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(atividade.getId()).stream()
                 .map(q -> {
                     var resposta = tentativa == null ? null : respostaRepository
@@ -86,7 +85,7 @@ public class AlunoAtividadeService {
                 }).toList();
         var estado = estado(atribuicao, tentativa);
         return new AlunoAtividadeDetalheResponse(atribuicaoId, atividade.getId(), atividade.getTitulo(), atividade.getDescricao(),
-                atividade.getAnoEscolar(), atividade.getConteudo(), estado, tentativa == null ? null : tentativa.getId(), perfil, questoes);
+                atividade.getAnoEscolar(), atividade.getConteudo(), estado, tentativa == null ? null : tentativa.getId(), acessibilidade, questoes);
     }
 
     private AlunoAtividadeResumoResponse resumo(Atribuicao atribuicao, Atividade atividade, Tentativa tentativa) {

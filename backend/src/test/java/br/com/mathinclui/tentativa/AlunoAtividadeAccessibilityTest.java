@@ -40,6 +40,7 @@ class AlunoAtividadeAccessibilityTest {
         var acessibilidadeService = mock(AcessibilidadeEfetivaService.class);
 
         var aluno = mock(Aluno.class);
+        when(aluno.getId()).thenReturn(20L);
         when(aluno.isAtivo()).thenReturn(true);
         when(aluno.getTurmaId()).thenReturn(30L);
         when(alunoRepository.findById(20L)).thenReturn(Optional.of(aluno));
