@@ -1,5 +1,9 @@
 package br.com.mathinclui.questao;
 
+import br.com.mathinclui.biblioteca.ImportarQuestoesRequest;
+import br.com.mathinclui.biblioteca.QuestaoModeloResponse;
+import br.com.mathinclui.biblioteca.QuestaoModeloService;
+import br.com.mathinclui.biblioteca.SalvarQuestaoNoBancoRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,9 +25,11 @@ import java.util.List;
 @RequestMapping("/api/v1/atividades/{atividadeId}/questoes")
 public class QuestaoController {
     private final QuestaoService questaoService;
+    private final QuestaoModeloService questaoModeloService;
 
-    public QuestaoController(QuestaoService questaoService) {
+    public QuestaoController(QuestaoService questaoService, QuestaoModeloService questaoModeloService) {
         this.questaoService = questaoService;
+        this.questaoModeloService = questaoModeloService;
     }
 
     @PostMapping
@@ -49,6 +55,19 @@ public class QuestaoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@AuthenticationPrincipal Jwt jwt, @PathVariable Long atividadeId, @PathVariable Long questaoId) {
         questaoService.excluir(professorId(jwt), atividadeId, questaoId);
+    }
+
+    @PostMapping("/{questaoId}/salvar-no-banco")
+    public QuestaoModeloResponse salvarNoBanco(@AuthenticationPrincipal Jwt jwt, @PathVariable Long atividadeId,
+                                                @PathVariable Long questaoId,
+                                                @Valid @RequestBody SalvarQuestaoNoBancoRequest request) {
+        return questaoModeloService.salvarNoBanco(professorId(jwt), atividadeId, questaoId, request);
+    }
+
+    @PostMapping("/importar")
+    public List<QuestaoProfessorResponse> importar(@AuthenticationPrincipal Jwt jwt, @PathVariable Long atividadeId,
+                                                   @Valid @RequestBody ImportarQuestoesRequest request) {
+        return questaoModeloService.importar(professorId(jwt), atividadeId, request);
     }
 
     private Long professorId(Jwt jwt) {
