@@ -54,6 +54,14 @@ export type QuestaoProfessor = {
 
 export type QuestaoPayload = Omit<QuestaoProfessor, 'id' | 'atividadeId'>;
 
+export type SalvarQuestaoBancoPayload = {
+  anoEscolar: number;
+  conteudo: string;
+  dificuldade: DificuldadeAtividade;
+  habilidadeIds: number[];
+  tagIds: number[];
+};
+
 export type Atribuicao = {
   id: number;
   atividadeId: number;
@@ -111,54 +119,22 @@ function withDefaults(payload: AtividadePayload) {
   return { ...payload, limiteTentativas: payload.limiteTentativas ?? 3 };
 }
 
-export async function listarAtividades() {
-  return (await api.get<Atividade[]>('/atividades')).data;
+export async function listarAtividades() { return (await api.get<Atividade[]>('/atividades')).data; }
+export async function buscarAtividade(id: number) { return (await api.get<Atividade>(`/atividades/${id}`)).data; }
+export async function criarAtividade(payload: AtividadePayload) { return (await api.post<Atividade>('/atividades', withDefaults(payload))).data; }
+export async function atualizarAtividade(id: number, payload: AtividadePayload) { return (await api.put<Atividade>(`/atividades/${id}`, withDefaults(payload))).data; }
+export async function excluirAtividade(id: number) { await api.delete(`/atividades/${id}`); }
+export async function publicarAtividade(id: number) { return (await api.post<Atividade>(`/atividades/${id}/publicar`)).data; }
+export async function listarQuestoes(atividadeId: number) { return (await api.get<QuestaoProfessor[]>(`/atividades/${atividadeId}/questoes`)).data; }
+export async function criarQuestao(atividadeId: number, payload: QuestaoPayload) { return (await api.post<QuestaoProfessor>(`/atividades/${atividadeId}/questoes`, payload)).data; }
+export async function atualizarQuestao(atividadeId: number, questaoId: number, payload: QuestaoPayload) { return (await api.put<QuestaoProfessor>(`/atividades/${atividadeId}/questoes/${questaoId}`, payload)).data; }
+export async function excluirQuestao(atividadeId: number, questaoId: number) { await api.delete(`/atividades/${atividadeId}/questoes/${questaoId}`); }
+export async function importarQuestoes(atividadeId: number, questoesModeloIds: number[]) {
+  return (await api.post<QuestaoProfessor[]>(`/atividades/${atividadeId}/questoes/importar`, { questoesModeloIds })).data;
 }
-
-export async function buscarAtividade(id: number) {
-  return (await api.get<Atividade>(`/atividades/${id}`)).data;
+export async function salvarQuestaoNoBanco(atividadeId: number, questaoId: number, payload: SalvarQuestaoBancoPayload) {
+  return (await api.post(`/atividades/${atividadeId}/questoes/${questaoId}/salvar-no-banco`, payload)).data;
 }
-
-export async function criarAtividade(payload: AtividadePayload) {
-  return (await api.post<Atividade>('/atividades', withDefaults(payload))).data;
-}
-
-export async function atualizarAtividade(id: number, payload: AtividadePayload) {
-  return (await api.put<Atividade>(`/atividades/${id}`, withDefaults(payload))).data;
-}
-
-export async function excluirAtividade(id: number) {
-  await api.delete(`/atividades/${id}`);
-}
-
-export async function publicarAtividade(id: number) {
-  return (await api.post<Atividade>(`/atividades/${id}/publicar`)).data;
-}
-
-export async function listarQuestoes(atividadeId: number) {
-  return (await api.get<QuestaoProfessor[]>(`/atividades/${atividadeId}/questoes`)).data;
-}
-
-export async function criarQuestao(atividadeId: number, payload: QuestaoPayload) {
-  return (await api.post<QuestaoProfessor>(`/atividades/${atividadeId}/questoes`, payload)).data;
-}
-
-export async function atualizarQuestao(atividadeId: number, questaoId: number, payload: QuestaoPayload) {
-  return (await api.put<QuestaoProfessor>(`/atividades/${atividadeId}/questoes/${questaoId}`, payload)).data;
-}
-
-export async function excluirQuestao(atividadeId: number, questaoId: number) {
-  await api.delete(`/atividades/${atividadeId}/questoes/${questaoId}`);
-}
-
-export async function listarAtribuicoes() {
-  return (await api.get<Atribuicao[]>('/atribuicoes')).data;
-}
-
-export async function atribuirAtividade(payload: AtribuicaoPayload) {
-  return (await api.post<Atribuicao>('/atribuicoes', payload)).data;
-}
-
-export async function buscarResultados(atribuicaoId: number) {
-  return (await api.get<AtividadeResultados>(`/atribuicoes/${atribuicaoId}/resultados`)).data;
-}
+export async function listarAtribuicoes() { return (await api.get<Atribuicao[]>('/atribuicoes')).data; }
+export async function atribuirAtividade(payload: AtribuicaoPayload) { return (await api.post<Atribuicao>('/atribuicoes', payload)).data; }
+export async function buscarResultados(atribuicaoId: number) { return (await api.get<AtividadeResultados>(`/atribuicoes/${atribuicaoId}/resultados`)).data; }
