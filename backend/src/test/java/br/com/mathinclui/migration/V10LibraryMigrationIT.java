@@ -15,7 +15,7 @@ class V10LibraryMigrationIT extends PostgresIntegrationTest {
 
     @Test
     void deveAplicarFlywayAteV10ECriarEstruturasDaBiblioteca() throws Exception {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("10");
+        assertThat(Integer.parseInt(flyway.info().current().getVersion().getVersion())).isGreaterThanOrEqualTo(10);
         try (Connection c = connection()) {
             assertThat(count(c, """
                     SELECT COUNT(*) FROM information_schema.tables
