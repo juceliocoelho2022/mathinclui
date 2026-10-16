@@ -29,3 +29,6 @@ Task 4: complete (commits eb2de04..880546f, tests: full GitHub Actions backend s
 Task 5: RED observed in run 38970621493 — library service/filter/classification/tag contracts absent at testCompile. Production implementation compiled and behavioral tests passed in run 38970923292; only two strict-Mockito unused stubs remained in the system-source deep-copy test. Removed those test-only stubs.
 Task 5: GREEN observed in run 38971110015 — backend full suite PASS, frontend tests/build PASS, structural PASS.
 Task 5: complete (commits b4c80b7..318c271, tests: full GitHub Actions backend suite → PASS)
+Task 6: RED observed in run 38971358693 — testCompile failed because QuestaoModeloService, SalvarQuestaoNoBancoRequest and ImportarQuestoesRequest did not exist. Production implementation landed in commit 53e4ce1; the first GREEN pass exposed that salvarNoBanco returned a response before reloading saved alternatives, so the response contract was incomplete. Commit 8bec661 fixed the response mapping after persisted alternatives/classification.
+Task 6: GREEN observed in run 38971878168 — full v0.5 Dev CI PASS (backend, frontend tests/build and structural).
+Task 6: complete (commits 59141d7..8bec661, tests: full GitHub Actions suite → PASS)
