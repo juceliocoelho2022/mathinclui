@@ -139,12 +139,12 @@ class TentativaServiceTest {
 
     private void prepararAcesso(Fixture f) {
         when(alunoRepository.findById(f.aluno.getId())).thenReturn(Optional.of(f.aluno));
-        when(atribuicaoRepository.findById(f.atribuicao.getId())).thenReturn(Optional.of(f.atribuicao));
+        when(atribuicaoRepository.findForUpdate(f.atribuicao.getId())).thenReturn(Optional.of(f.atribuicao));
         when(atividadeRepository.findById(f.atividade.getId())).thenReturn(Optional.of(f.atividade));
     }
 
     private void prepararResposta(Fixture f, Tentativa tentativa) {
-        when(tentativaRepository.findByIdAndAlunoId(500L, f.aluno.getId())).thenReturn(Optional.of(tentativa));
+        when(tentativaRepository.findForUpdate(500L, f.aluno.getId())).thenReturn(Optional.of(tentativa));
         when(atribuicaoRepository.findById(f.atribuicao.getId())).thenReturn(Optional.of(f.atribuicao));
         when(atividadeRepository.findById(f.atividade.getId())).thenReturn(Optional.of(f.atividade));
         when(questaoRepository.findByIdAndAtividadeId(f.questao.getId(), f.atividade.getId())).thenReturn(Optional.of(f.questao));

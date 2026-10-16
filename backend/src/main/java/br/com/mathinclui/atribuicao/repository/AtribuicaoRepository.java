@@ -2,7 +2,9 @@ package br.com.mathinclui.atribuicao.repository;
 
 import br.com.mathinclui.atribuicao.domain.Atribuicao;
 import br.com.mathinclui.atribuicao.domain.StatusAtribuicao;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,6 +15,10 @@ import java.util.Optional;
 public interface AtribuicaoRepository extends JpaRepository<Atribuicao, Long> {
     List<Atribuicao> findAllByProfessorIdOrderByCriadoEmDesc(Long professorId);
     Optional<Atribuicao> findByIdAndProfessorId(Long id, Long professorId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Atribuicao a where a.id = :id")
+    Optional<Atribuicao> findForUpdate(@Param("id") Long id);
 
     @Query("select a from Atribuicao a where a.status = :status and (a.alunoId = :alunoId or a.turmaId = :turmaId) and a.dataInicio <= :agora and (a.dataLimite is null or a.dataLimite >= :agora) order by a.criadoEm desc")
     List<Atribuicao> findDisponiveisParaAluno(@Param("alunoId") Long alunoId,

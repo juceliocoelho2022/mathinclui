@@ -14,10 +14,8 @@ import br.com.mathinclui.resposta.domain.Resposta;
 import br.com.mathinclui.resposta.domain.RespostaTentativa;
 import br.com.mathinclui.resposta.repository.RespostaRepository;
 import br.com.mathinclui.resposta.repository.RespostaTentativaRepository;
-import br.com.mathinclui.tentativa.domain.StatusTentativa;
 import br.com.mathinclui.tentativa.domain.Tentativa;
 import br.com.mathinclui.tentativa.repository.TentativaRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +24,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,7 +61,7 @@ public class TentativaService {
     public TentativaResponse iniciar(Long alunoId, Long atribuicaoId) {
         var aluno = alunoRepository.findById(alunoId).filter(a -> a.isAtivo())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aluno não encontrado."));
-        var atribuicao = atribuicaoRepository.findById(atribuicaoId)
+        var atribuicao = atribuicaoRepository.findForUpdate(atribuicaoId)
                 .filter(a -> a.destinadaAo(alunoId, aluno.getTurmaId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Atividade atribuída não encontrada."));
         if (!atribuicao.disponivelEm(clock.instant())) {
@@ -77,19 +74,13 @@ public class TentativaService {
         }
         var existente = tentativaRepository.findByAtribuicaoIdAndAlunoId(atribuicaoId, alunoId);
         if (existente.isPresent()) return TentativaResponse.from(existente.get());
-        try {
-            return TentativaResponse.from(tentativaRepository.save(new Tentativa(atribuicaoId, alunoId, clock.instant())));
-        } catch (DataIntegrityViolationException e) {
-            var concorrente = tentativaRepository.findByAtribuicaoIdAndAlunoId(atribuicaoId, alunoId)
-                    .orElseThrow(() -> e);
-            return TentativaResponse.from(concorrente);
-        }
+        return TentativaResponse.from(tentativaRepository.save(new Tentativa(atribuicaoId, alunoId, clock.instant())));
     }
 
     @Transactional
     public RespostaQuestaoResponse responder(Long alunoId, Long tentativaId, Long questaoId,
                                              RespostaQuestaoRequest request) {
-        var tentativa = tentativaRepository.findByIdAndAlunoId(tentativaId, alunoId)
+        var tentativa = tentativaRepository.findForUpdate(tentativaId, alunoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tentativa não encontrada."));
         if (tentativa.isFinalizada()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A tentativa já foi finalizada.");
