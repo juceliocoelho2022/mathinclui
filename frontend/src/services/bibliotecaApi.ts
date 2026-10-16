@@ -14,6 +14,11 @@ export type HabilidadeBncc = {
 
 export type TagProfessor = { id: number; nome: string };
 
+export type ClassificacaoAtividade = {
+  habilidades: HabilidadeBncc[];
+  tags: TagProfessor[];
+};
+
 export type PageResponse<T> = {
   content: T[];
   page: number;
@@ -113,4 +118,12 @@ export async function listarHabilidadesBncc(ano?: number) {
 
 export async function listarTagsProfessor() {
   return (await api.get<TagProfessor[]>('/biblioteca/tags')).data;
+}
+
+export async function buscarClassificacaoAtividade(atividadeId: number) {
+  return (await api.get<ClassificacaoAtividade>(`/atividades/${atividadeId}/classificacao`)).data;
+}
+
+export async function atualizarClassificacaoAtividade(atividadeId: number, payload: { habilidadeIds: number[]; tagIds: number[] }) {
+  return (await api.put<ClassificacaoAtividade>(`/atividades/${atividadeId}/classificacao`, payload)).data;
 }
