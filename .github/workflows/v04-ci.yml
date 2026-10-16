@@ -1,0 +1,62 @@
+name: v0.4 CI
+
+on:
+  push:
+    branches:
+      - feature/v0.4-atividades-questoes
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Backend tests
+        working-directory: backend
+        run: mvn -B test
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+      - name: Frontend tests
+        working-directory: frontend
+        run: npm run test:run
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
+
+  structural:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Structural verification
+        run: |
+          python scripts/verify_project.py
+          python scripts/verify_v03.py
+          python scripts/verify_v04.py
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t mathinclui-backend:v0.4 ./backend
+      - name: Build frontend image
+        run: docker build -t mathinclui-frontend:v0.4 ./frontend

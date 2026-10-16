@@ -3,9 +3,14 @@ import { Link, Route, Routes } from 'react-router-dom';
 import { AuthPage } from './features/auth/AuthPage';
 import { SessionPage } from './features/auth/SessionPage';
 import { GestaoEscolarPage } from './features/gestao/GestaoEscolarPage';
+import { AtividadesProfessorPage } from './features/atividades/AtividadesProfessorPage';
+import { AlunoAtividadesPage } from './features/aluno/AlunoAtividadesPage';
+import { ResolverAtividadePage } from './features/aluno/ResolverAtividadePage';
+import { ResultadoAlunoPage } from './features/aluno/ResultadoAlunoPage';
 import { fetchSystemInfo, type SystemInfo } from './services/systemApi';
 import { statusLabel } from './utils/statusLabel';
 import './styles.css';
+import './v04.css';
 
 const principles = [
   'Apoio visual e linguagem direta',
@@ -38,8 +43,8 @@ function HomePage() {
           <h1 id="page-title">MathInclui</h1>
           <p className="subtitle">Matemática por diferentes caminhos.</p>
           <p className="description">
-            Uma plataforma para apoiar professores e estudantes do 6º ao 8º ano
-            com experiências de aprendizagem mais acessíveis e acompanháveis.
+            Uma plataforma para professores criarem experiências de Matemática mais acessíveis,
+            com dicas, retentativas e acompanhamento do progresso individual.
           </p>
           <div className="hero-actions">
             <Link className="primary-button link-button" to="/entrar/professor">Entrar como professor</Link>
@@ -48,11 +53,11 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="grid" aria-label="Visão da versão 0.3">
+      <section className="grid" aria-label="Visão da versão 0.4">
         <article className="card status-card">
-          <p className="card-kicker">v0.3 • Gestão escolar</p>
-          <h2>Turmas, alunos e apoio pedagógico</h2>
-          <p>Professor gerencia turmas, alunos e perfis pedagógicos individuais com acesso protegido por JWT.</p>
+          <p className="card-kicker">v0.4 • Atividades e progresso</p>
+          <h2>Do planejamento ao acompanhamento</h2>
+          <p>Professor cria e atribui atividades; aluno resolve com apoio progressivo; resultados ficam disponíveis para acompanhamento.</p>
           <div className={`status status-${backendStatus.toLowerCase()}`} role="status" aria-live="polite">
             <span className="status-dot" aria-hidden="true" />
             <span>{statusLabel(backendStatus)}</span>
@@ -63,16 +68,14 @@ function HomePage() {
         <article className="card">
           <p className="card-kicker">Princípios</p>
           <h2>Inclusão sem rotular</h2>
-          <ul>
-            {principles.map((item) => <li key={item}>{item}</li>)}
-          </ul>
+          <ul>{principles.map((item) => <li key={item}>{item}</li>)}</ul>
         </article>
       </section>
 
       <section className="next-steps" aria-labelledby="next-title">
-        <p className="card-kicker">Roadmap</p>
-        <h2 id="next-title">Versão atual: gestão escolar</h2>
-        <p>Na v0.3, o professor cadastra turmas e alunos e configura apoios pedagógicos individuais sem registrar diagnóstico clínico.</p>
+        <p className="card-kicker">Versão atual</p>
+        <h2 id="next-title">Atividades, tentativas, dicas e resultados</h2>
+        <p>Na v0.4, o ciclo pedagógico conecta professor e aluno sem expor gabaritos antes da hora e sem competição entre estudantes.</p>
       </section>
     </main>
   );
@@ -89,6 +92,10 @@ export default function App() {
       <Route path="/redefinir-senha" element={<AuthPage mode="reset" />} />
       <Route path="/app" element={<SessionPage />} />
       <Route path="/app/gestao" element={<GestaoEscolarPage />} />
+      <Route path="/app/atividades" element={<AtividadesProfessorPage />} />
+      <Route path="/app/atividades-aluno" element={<AlunoAtividadesPage />} />
+      <Route path="/app/atividades-aluno/:atribuicaoId" element={<ResolverAtividadePage />} />
+      <Route path="/app/tentativas/:tentativaId/resultado" element={<ResultadoAlunoPage />} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   );
