@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,7 +78,6 @@ class AtribuicaoServiceTest {
     private void prepararAtividadeETurma() {
         when(atividadeService.obterAtribuivel(1L, 10L)).thenReturn(atividade());
         when(turmaService.obterDoProfessor(1L, 20L)).thenReturn(new Turma(1L, "7A", (short) 7, "7A"));
-        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     private Atividade atividade() {
