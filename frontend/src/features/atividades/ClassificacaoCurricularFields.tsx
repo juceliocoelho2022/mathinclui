@@ -36,12 +36,10 @@ export function ClassificacaoCurricularFields({ atividadeId, anoEscolar, onSelec
   }, [atividadeId, anoEscolar, onSelectionChange]);
 
   function toggle(kind: 'habilidadeIds' | 'tagIds', id: number) {
-    setSelected((current) => {
-      const values = current[kind];
-      const next = { ...current, [kind]: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] };
-      onSelectionChange?.(next);
-      return next;
-    });
+    const values = selected[kind];
+    const next = { ...selected, [kind]: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] };
+    setSelected(next);
+    onSelectionChange?.(next);
   }
 
   async function salvar() {
