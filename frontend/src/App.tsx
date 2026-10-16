@@ -4,6 +4,7 @@ import { AuthPage } from './features/auth/AuthPage';
 import { SessionPage } from './features/auth/SessionPage';
 import { GestaoEscolarPage } from './features/gestao/GestaoEscolarPage';
 import { AtividadesProfessorPage } from './features/atividades/AtividadesProfessorPage';
+import { BibliotecaPage } from './features/biblioteca/BibliotecaPage';
 import { AlunoAtividadesPage } from './features/aluno/AlunoAtividadesPage';
 import { ResolverAtividadePage } from './features/aluno/ResolverAtividadePage';
 import { ResultadoAlunoPage } from './features/aluno/ResultadoAlunoPage';
@@ -11,6 +12,7 @@ import { fetchSystemInfo, type SystemInfo } from './services/systemApi';
 import { statusLabel } from './utils/statusLabel';
 import './styles.css';
 import './v04.css';
+import './v05.css';
 
 const principles = [
   'Apoio visual e linguagem direta',
@@ -93,6 +95,7 @@ export default function App() {
       <Route path="/app" element={<SessionPage />} />
       <Route path="/app/gestao" element={<GestaoEscolarPage />} />
       <Route path="/app/atividades" element={<AtividadesProfessorPage />} />
+      <Route path="/app/biblioteca" element={<BibliotecaPage />} />
       <Route path="/app/atividades-aluno" element={<AlunoAtividadesPage />} />
       <Route path="/app/atividades-aluno/:atribuicaoId" element={<ResolverAtividadePage />} />
       <Route path="/app/tentativas/:tentativaId/resultado" element={<ResultadoAlunoPage />} />
