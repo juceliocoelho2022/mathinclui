@@ -47,6 +47,12 @@ public class Atividade {
     @Column(name = "limite_tentativas", nullable = false)
     private int limiteTentativas = 3;
 
+    @Column(name = "origem_atividade_id")
+    private Long origemAtividadeId;
+
+    @Column(name = "copiado_em")
+    private Instant copiadoEm;
+
     @Column(name = "criado_em", nullable = false, insertable = false, updatable = false)
     private Instant criadoEm;
 
@@ -67,6 +73,11 @@ public class Atividade {
                           DificuldadeAtividade dificuldade, int limiteTentativas) {
         validar(titulo, anoEscolar, conteudo, dificuldade, limiteTentativas);
         aplicar(titulo, descricao, anoEscolar, conteudo, dificuldade, limiteTentativas);
+    }
+
+    public void marcarOrigem(Long origemAtividadeId, Instant copiadoEm) {
+        this.origemAtividadeId = origemAtividadeId;
+        this.copiadoEm = copiadoEm;
     }
 
     public void publicar() {
@@ -110,5 +121,7 @@ public class Atividade {
     public TipoOrigemAtividade getTipoOrigem() { return tipoOrigem; }
     public boolean isPublicada() { return publicada; }
     public int getLimiteTentativas() { return limiteTentativas; }
+    public Long getOrigemAtividadeId() { return origemAtividadeId; }
+    public Instant getCopiadoEm() { return copiadoEm; }
     public Instant getCriadoEm() { return criadoEm; }
 }

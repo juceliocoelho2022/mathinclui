@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "questoes")
 public class Questao {
@@ -50,6 +52,12 @@ public class Questao {
     @Column(name = "limite_tentativas")
     private Integer limiteTentativas;
 
+    @Column(name = "origem_questao_modelo_id")
+    private Long origemQuestaoModeloId;
+
+    @Column(name = "copiado_em")
+    private Instant copiadoEm;
+
     protected Questao() {
     }
 
@@ -66,6 +74,11 @@ public class Questao {
                           Integer limiteTentativas) {
         validar(this.atividadeId, enunciado, tipo, respostaCorreta, ordem, limiteTentativas);
         aplicar(enunciado, tipo, respostaCorreta, explicacao, dica1, dica2, dica3, imagemUrl, ordem, limiteTentativas);
+    }
+
+    public void marcarOrigemModelo(Long origemQuestaoModeloId, Instant copiadoEm) {
+        this.origemQuestaoModeloId = origemQuestaoModeloId;
+        this.copiadoEm = copiadoEm;
     }
 
     public int limiteEfetivo(int limiteAtividade) {
@@ -118,4 +131,6 @@ public class Questao {
     public String getImagemUrl() { return imagemUrl; }
     public int getOrdem() { return ordem; }
     public Integer getLimiteTentativas() { return limiteTentativas; }
+    public Long getOrigemQuestaoModeloId() { return origemQuestaoModeloId; }
+    public Instant getCopiadoEm() { return copiadoEm; }
 }
