@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   atualizarAtividade,
   atualizarQuestao,
@@ -7,6 +7,7 @@ import {
   excluirQuestao,
   listarQuestoes,
   publicarAtividade,
+  salvarQuestaoNoBanco,
   type AlternativaProfessor,
   type Atividade,
   type DificuldadeAtividade,
@@ -14,6 +15,8 @@ import {
   type QuestaoProfessor,
   type TipoQuestao,
 } from '../../services/atividadesApi';
+import { ClassificacaoCurricularFields, type ClassificacaoSelection } from './ClassificacaoCurricularFields';
+import { QuestaoLibraryPicker } from './QuestaoLibraryPicker';
 
 type Props = {
   atividade: Atividade | null;
@@ -39,6 +42,9 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
   const [questoes, setQuestoes] = useState<QuestaoProfessor[]>([]);
   const [editingQuestao, setEditingQuestao] = useState<QuestaoProfessor | null>(null);
   const [showQuestao, setShowQuestao] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [classificacao, setClassificacao] = useState<ClassificacaoSelection>({ habilidadeIds: [], tagIds: [] });
+  const [classificacaoReady, setClassificacaoReady] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -52,10 +58,21 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
   const [limiteQuestao, setLimiteQuestao] = useState('');
   const [alternativas, setAlternativas] = useState<AlternativaDraft[]>(novasAlternativas);
 
-  useEffect(() => {
+  const carregarQuestoes = useCallback(async () => {
     if (!current) return;
-    listarQuestoes(current.id).then(setQuestoes).catch(() => setMessage('Não foi possível carregar as questões.'));
+    try {
+      setQuestoes(await listarQuestoes(current.id));
+    } catch {
+      setMessage('Não foi possível carregar as questões.');
+    }
   }, [current?.id]);
+
+  useEffect(() => { void carregarQuestoes(); }, [carregarQuestoes]);
+
+  const onClassificationChange = useCallback((value: ClassificacaoSelection) => {
+    setClassificacao(value);
+    setClassificacaoReady(true);
+  }, []);
 
   const proximaOrdem = useMemo(() => Math.max(0, ...questoes.map((q) => q.ordem)) + 1, [questoes]);
 
@@ -68,7 +85,7 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
       const saved = current ? await atualizarAtividade(current.id, payload) : await criarAtividade(payload);
       setCurrent(saved);
       onSaved(saved);
-      setMessage('Dados gerais salvos. Agora você pode configurar as questões.');
+      setMessage('Dados gerais salvos. Agora você pode configurar currículo e questões.');
     } catch {
       setMessage('Não foi possível salvar a atividade. Revise os campos.');
     } finally {
@@ -88,6 +105,7 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
     setLimiteQuestao('');
     setAlternativas(novasAlternativas());
     setShowQuestao(true);
+    setShowLibrary(false);
   }
 
   function editarQuestaoItem(q: QuestaoProfessor) {
@@ -102,6 +120,7 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
     setLimiteQuestao(q.limiteTentativas ? String(q.limiteTentativas) : '');
     setAlternativas(q.alternativas.length ? q.alternativas.map((a, index) => ({ ...a, localId: index + 1 })) : novasAlternativas());
     setShowQuestao(true);
+    setShowLibrary(false);
   }
 
   function mudarTipo(next: TipoQuestao) {
@@ -135,7 +154,7 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
     try {
       if (editingQuestao) await atualizarQuestao(current.id, editingQuestao.id, payload);
       else await criarQuestao(current.id, payload);
-      setQuestoes(await listarQuestoes(current.id));
+      await carregarQuestoes();
       setShowQuestao(false);
       setMessage('Questão salva.');
     } catch {
@@ -146,7 +165,23 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
   async function removerQuestao(id: number) {
     if (!current) return;
     await excluirQuestao(current.id, id);
-    setQuestoes(await listarQuestoes(current.id));
+    await carregarQuestoes();
+  }
+
+  async function salvarQuestaoBanco(questaoId: number) {
+    if (!current || !classificacaoReady) return;
+    try {
+      await salvarQuestaoNoBanco(current.id, questaoId, {
+        anoEscolar: current.anoEscolar,
+        conteudo: current.conteudo,
+        dificuldade: current.dificuldade,
+        habilidadeIds: classificacao.habilidadeIds,
+        tagIds: classificacao.tagIds,
+      });
+      setMessage('Questão salva na sua biblioteca.');
+    } catch {
+      setMessage('Não foi possível salvar a questão na biblioteca.');
+    }
   }
 
   async function publicar() {
@@ -179,7 +214,7 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
         <div>
           <p className="card-kicker">Editor de atividade</p>
           <h1>{current ? current.titulo : 'Nova atividade'}</h1>
-          <p>Configure os dados gerais, as questões, dicas e limites de tentativas.</p>
+          <p>Configure os dados gerais, o currículo, as questões, dicas e limites de tentativas.</p>
         </div>
         <button className="secondary-button" type="button" onClick={onCancel}>Voltar</button>
       </div>
@@ -208,18 +243,26 @@ export function AtividadeEditor({ atividade, onSaved, onCancel }: Props) {
         <button className="primary-button" disabled={busy}>{busy ? 'Salvando…' : 'Salvar atividade'}</button>
       </form>
 
+      {current && <ClassificacaoCurricularFields atividadeId={current.id} anoEscolar={current.anoEscolar} onSelectionChange={onClassificationChange} />}
+
       {current && (
         <section className="question-section" aria-labelledby="questoes-title">
           <div className="section-heading">
             <div><p className="card-kicker">Conteúdo avaliativo</p><h2 id="questoes-title">Questões da atividade</h2></div>
-            <button className="secondary-button" type="button" onClick={abrirNovaQuestao}>Adicionar questão</button>
+            <div className="activity-actions">
+              <button className="secondary-button" type="button" onClick={abrirNovaQuestao}>Adicionar questão</button>
+              <button className="secondary-button" type="button" onClick={() => { setShowLibrary(true); setShowQuestao(false); }}>Buscar na biblioteca</button>
+            </div>
           </div>
+
+          {showLibrary && <QuestaoLibraryPicker atividadeId={current.id} onImported={carregarQuestoes} onClose={() => setShowLibrary(false)} />}
 
           {questoes.map((q) => (
             <article className="question-summary" key={q.id}>
               <div><strong>{q.ordem}. {q.enunciado}</strong><small>{q.tipo} • limite {q.limiteTentativas ?? current.limiteTentativas}</small></div>
               <div className="activity-actions">
                 <button type="button" className="secondary-button" onClick={() => editarQuestaoItem(q)}>Editar questão</button>
+                {classificacaoReady && <button type="button" className="secondary-button" onClick={() => void salvarQuestaoBanco(q.id)}>Salvar no banco</button>}
                 <button type="button" className="secondary-button" onClick={() => void removerQuestao(q.id)}>Excluir</button>
               </div>
             </article>
