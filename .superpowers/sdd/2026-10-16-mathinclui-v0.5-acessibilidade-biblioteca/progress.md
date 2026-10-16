@@ -38,3 +38,6 @@ Task 7: complete (commits b073689..5213892, tests: full GitHub Actions suite →
 Task 8: RED observed in run 38978312878 — BibliotecaPage module did not exist and `/app/atividades?editar=77` stayed on the list instead of opening the copied activity. Production added library API/client, filters, activity card, three views, copy guard, pagination, route/session entry point, v0.5 styles and query-param handoff to AtividadeEditor.
 Task 8: GREEN observed in run 38978674489 — frontend full test suite PASS, TypeScript/Vite build PASS, backend full suite PASS and structural PASS.
 Task 8: complete (commits 2b06b22..10eb321, tests: full GitHub Actions suite → PASS)
+Task 9: RED observed in run 38978888410 — QuestaoLibraryPicker was absent, AtividadeEditor had no BNCC/tag classification controls and no “Salvar no banco” action; 17 existing frontend tests still passed. Production added separate curriculum API calls, ClassificacaoCurricularFields, multi-select QuestaoLibraryPicker, question import/reload, and save-to-bank using the activity's year/content/difficulty plus current skill/tag selections.
+Task 9: GREEN observed in run 38979125753 — backend full suite PASS, frontend full tests PASS, TypeScript/Vite build PASS and structural PASS.
+Task 9: complete (commits 94def21..b26ec79, tests: full GitHub Actions suite → PASS)
