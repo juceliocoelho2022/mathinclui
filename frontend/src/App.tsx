@@ -4,6 +4,9 @@ import { AuthPage } from './features/auth/AuthPage';
 import { SessionPage } from './features/auth/SessionPage';
 import { GestaoEscolarPage } from './features/gestao/GestaoEscolarPage';
 import { AtividadesProfessorPage } from './features/atividades/AtividadesProfessorPage';
+import { AlunoAtividadesPage } from './features/aluno/AlunoAtividadesPage';
+import { ResolverAtividadePage } from './features/aluno/ResolverAtividadePage';
+import { ResultadoAlunoPage } from './features/aluno/ResultadoAlunoPage';
 import { fetchSystemInfo, type SystemInfo } from './services/systemApi';
 import { statusLabel } from './utils/statusLabel';
 import './styles.css';
@@ -64,9 +67,7 @@ function HomePage() {
         <article className="card">
           <p className="card-kicker">Princípios</p>
           <h2>Inclusão sem rotular</h2>
-          <ul>
-            {principles.map((item) => <li key={item}>{item}</li>)}
-          </ul>
+          <ul>{principles.map((item) => <li key={item}>{item}</li>)}</ul>
         </article>
       </section>
 
@@ -91,6 +92,9 @@ export default function App() {
       <Route path="/app" element={<SessionPage />} />
       <Route path="/app/gestao" element={<GestaoEscolarPage />} />
       <Route path="/app/atividades" element={<AtividadesProfessorPage />} />
+      <Route path="/app/atividades-aluno" element={<AlunoAtividadesPage />} />
+      <Route path="/app/atividades-aluno/:atribuicaoId" element={<ResolverAtividadePage />} />
+      <Route path="/app/tentativas/:tentativaId/resultado" element={<ResultadoAlunoPage />} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   );

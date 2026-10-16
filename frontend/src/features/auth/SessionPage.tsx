@@ -23,10 +23,7 @@ export function SessionPage() {
     navigate('/');
   }
 
-  if (loading) {
-    return <main className="page-shell"><p>Carregando sua sessão…</p></main>;
-  }
-
+  if (loading) return <main className="page-shell"><p>Carregando sua sessão…</p></main>;
   if (!user) return null;
 
   return (
@@ -47,24 +44,27 @@ export function SessionPage() {
             <h2>Acesso validado</h2>
             <p>JWT de acesso, refresh token com rotação e perfil <strong>{user.role}</strong>.</p>
           </article>
-          <article className="card">
-            <p className="card-kicker">Gestão escolar</p>
-            <h2>Turmas, alunos e perfil pedagógico</h2>
-            {user.tipo === 'PROFESSOR' ? (
-              <>
+          {user.tipo === 'PROFESSOR' ? (
+            <>
+              <article className="card">
+                <p className="card-kicker">Gestão escolar</p>
+                <h2>Turmas, alunos e perfil pedagógico</h2>
                 <p>Cadastre suas turmas e alunos e configure apoios pedagógicos individuais.</p>
                 <Link className="primary-button link-button" to="/app/gestao">Abrir gestão escolar</Link>
-              </>
-            ) : (
-              <p>Seu professor gerencia suas configurações pedagógicas de apoio.</p>
-            )}
-          </article>
-          {user.tipo === 'PROFESSOR' && (
+              </article>
+              <article className="card">
+                <p className="card-kicker">Atividades</p>
+                <h2>Criar, atribuir e acompanhar</h2>
+                <p>Monte questões, publique para turmas ou alunos e consulte os resultados de aprendizagem.</p>
+                <Link className="primary-button link-button" to="/app/atividades">Abrir atividades</Link>
+              </article>
+            </>
+          ) : (
             <article className="card">
-              <p className="card-kicker">Atividades</p>
-              <h2>Criar, atribuir e acompanhar</h2>
-              <p>Monte questões, publique para turmas ou alunos e consulte os resultados de aprendizagem.</p>
-              <Link className="primary-button link-button" to="/app/atividades">Abrir atividades</Link>
+              <p className="card-kicker">Aprendizagem</p>
+              <h2>Suas atividades de Matemática</h2>
+              <p>Resolva uma questão por vez, use dicas quando precisar e retome de onde parou.</p>
+              <Link className="primary-button link-button" to="/app/atividades-aluno">Abrir minhas atividades</Link>
             </article>
           )}
         </div>
