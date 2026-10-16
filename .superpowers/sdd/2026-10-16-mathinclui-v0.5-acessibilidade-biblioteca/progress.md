@@ -14,3 +14,7 @@ Pre-flight interfaces:
 
 Ruling: This environment does not have a local git worktree/executor. The approved feature branch itself is the isolated workspace; `main` remains untouched. GitHub Actions will be used as the remote RED→GREEN executor, matching the v0.4 execution method. Cost if wrong: transient feature-branch commits may include failing tests, but no shared/main branch is changed.
 Ruling: A temporary branch-only workflow `v05-dev-ci.yml` is execution tooling needed to observe RED/GREEN before Task 12; it will be replaced/removed by the final v0.5 workflow. Cost if wrong: extra CI runs on this feature branch only.
+
+Preflight: baseline run 38968331710 — backend GREEN, frontend GREEN/build GREEN, structural GREEN.
+Task 1: RED observed in run 38968496397 — Flyway v8, 3 accessibility tables absent; 53 tests, expected V9 failures only. GREEN observed in run 38968600360 — backend full suite PASS, frontend PASS/build PASS, structural PASS.
+Task 1: complete (commits 0f837b7..7271e83, tests: full GitHub Actions backend suite → PASS)
