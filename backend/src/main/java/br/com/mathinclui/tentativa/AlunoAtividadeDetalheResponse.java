@@ -1,6 +1,6 @@
 package br.com.mathinclui.tentativa;
 
-import br.com.mathinclui.perfilpedagogico.PerfilPedagogicoResponse;
+import br.com.mathinclui.acessibilidade.ConfiguracaoAcessibilidadeResponse;
 
 import java.util.List;
 
@@ -13,6 +13,6 @@ public record AlunoAtividadeDetalheResponse(
         String conteudo,
         String estado,
         Long tentativaId,
-        PerfilPedagogicoResponse perfilPedagogico,
+        ConfiguracaoAcessibilidadeResponse acessibilidade,
         List<AlunoQuestaoResponse> questoes
 ) {}
