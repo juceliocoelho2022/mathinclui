@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchSession, getAccessToken, type SessionUser } from '../../services/authApi';
 import {
   listarAtividades,
@@ -15,6 +15,7 @@ type ViewMode = 'LISTA' | 'EDITOR' | 'ATRIBUIR' | 'RESULTADOS';
 
 export function AtividadesProfessorPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [atribuicoes, setAtribuicoes] = useState<Atribuicao[]>([]);
@@ -28,6 +29,7 @@ export function AtividadesProfessorPage() {
       navigate('/entrar/professor');
       return;
     }
+    const editarId = Number(searchParams.get('editar'));
     fetchSession()
       .then(async (session) => {
         if (session.tipo !== 'PROFESSOR') {
@@ -35,22 +37,33 @@ export function AtividadesProfessorPage() {
           return;
         }
         setUser(session);
-        await carregar();
+        const { items } = await carregar();
+        if (Number.isFinite(editarId) && editarId > 0) {
+          const atividade = items.find((item) => item.id === editarId && item.tipoOrigem === 'PROFESSOR');
+          if (atividade) {
+            setSelecionada(atividade);
+            setMode('EDITOR');
+          }
+        }
       })
       .catch(() => navigate('/entrar/professor'))
       .finally(() => setLoading(false));
+    // O parâmetro de edição é um handoff de entrada; não reabrimos o editor após o usuário voltar à lista.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   async function carregar() {
     const [items, assignments] = await Promise.all([listarAtividades(), listarAtribuicoes()]);
     setAtividades(items);
     setAtribuicoes(assignments);
+    return { items, assignments };
   }
 
   async function voltarLista(texto?: string) {
     if (texto) setMessage(texto);
     setSelecionada(null);
     setMode('LISTA');
+    setSearchParams({}, { replace: true });
     await carregar();
   }
 
