@@ -3,6 +3,23 @@ import { api } from './authApi';
 export type TamanhoFonte = 'PADRAO' | 'GRANDE' | 'EXTRA_GRANDE';
 export type NivelApoio = 'PADRAO' | 'MODERADO' | 'AMPLIADO';
 
+export type ConfiguracaoAcessibilidade = {
+  tamanhoFonte: TamanhoFonte;
+  leituraVoz: boolean;
+  apoioVisual: boolean;
+  dicasPassoAPasso: boolean;
+  repeticaoGuiada: boolean;
+  questoesPorTela: number;
+  tempoAmpliado: boolean;
+  nivelApoio: NivelApoio;
+};
+
+export type PreferenciaInterface = {
+  tamanhoFonte: TamanhoFonte;
+  leituraVoz: boolean;
+  apoioVisual: boolean;
+};
+
 export type AdaptacaoPayload = {
   tamanhoFonteMinima: TamanhoFonte | null;
   leituraVozMinima: boolean | null;
@@ -52,4 +69,16 @@ export async function salvarAdaptacaoIndividual(atribuicaoId: number, alunoId: n
 
 export async function excluirAdaptacaoIndividual(atribuicaoId: number, alunoId: number) {
   await api.delete(`/atribuicoes/${atribuicaoId}/alunos/${alunoId}/adaptacao`);
+}
+
+export async function buscarPreferenciasInterface() {
+  return (await api.get<PreferenciaInterface>('/aluno/preferencias-interface')).data;
+}
+
+export async function salvarPreferenciasInterface(payload: PreferenciaInterface) {
+  return (await api.put<PreferenciaInterface>('/aluno/preferencias-interface', payload)).data;
+}
+
+export async function buscarAcessibilidadeAtribuicao(atribuicaoId: number) {
+  return (await api.get<ConfiguracaoAcessibilidade>(`/aluno/atribuicoes/${atribuicaoId}/acessibilidade`)).data;
 }
