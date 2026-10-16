@@ -58,6 +58,12 @@ export function SessionPage() {
                 <p>Monte questões, publique para turmas ou alunos e consulte os resultados de aprendizagem.</p>
                 <Link className="primary-button link-button" to="/app/atividades">Abrir atividades</Link>
               </article>
+              <article className="card">
+                <p className="card-kicker">Biblioteca • v0.5</p>
+                <h2>Reutilizar conteúdos pedagógicos</h2>
+                <p>Consulte atividades e questões oficiais, filtre por contexto pedagógico e crie cópias editáveis.</p>
+                <Link className="primary-button link-button" to="/app/biblioteca">Abrir biblioteca</Link>
+              </article>
             </>
           ) : (
             <article className="card">
