@@ -14,8 +14,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class V9AccessibilityMigrationIT extends PostgresIntegrationTest {
 
     @Test
-    void deveAplicarFlywayAteV9() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
+    void deveTerAplicadoV9OuSuperior() {
+        int current = Integer.parseInt(flyway.info().current().getVersion().getVersion());
+        assertThat(current).isGreaterThanOrEqualTo(9);
     }
 
     @Test
