@@ -23,3 +23,5 @@ Task 1: RED run `38903483981` — backend failed exactly because Flyway remained
 Task 1: complete (commits ab8cd30..c6e087c, tests: remote `mvn -B test` run `38903647888` → 52 tests, 0 failures, 0 errors; full workflow success including frontend build and structural checks).
 Task 2: RED run `38904241895` — test compilation failed only because `acessibilidade` domain/repository/services/request did not yet exist.
 Task 2: complete (commits bca1a05..c4f3a50, tests: remote `mvn -B test` run `38904749428` → 60 tests, 0 failures, 0 errors; Flyway V9 and v0.4 regressions still green).
+Task 3: RED run `38905071540` — compile failed only on missing adaptation service/request plus old student detail contract.
+Task 3: complete (commits edcadfd..93ab64f, tests: remote `mvn -B test` run `38905336857` → 66 tests, 0 failures, 0 errors; student detail now uses effective accessibility).
