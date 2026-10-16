@@ -21,3 +21,5 @@ Pre-flight Task 1–11→12: release verification consumes all prior schema/API/
 
 Task 1: RED run `38903483981` — backend failed exactly because Flyway remained at V8 and V9 tables did not exist; 52 tests, 2 failures + 2 errors in `V9AccessibilityMigrationIT`.
 Task 1: complete (commits ab8cd30..c6e087c, tests: remote `mvn -B test` run `38903647888` → 52 tests, 0 failures, 0 errors; full workflow success including frontend build and structural checks).
+Task 2: RED run `38904241895` — test compilation failed only because `acessibilidade` domain/repository/services/request did not yet exist.
+Task 2: complete (commits bca1a05..c4f3a50, tests: remote `mvn -B test` run `38904749428` → 60 tests, 0 failures, 0 errors; Flyway V9 and v0.4 regressions still green).
