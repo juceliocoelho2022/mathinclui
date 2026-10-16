@@ -1,229 +1,139 @@
-# MathInclui v0.3.0
+# MathInclui v0.4.0
 
 **Matemática por diferentes caminhos.**
 
-O MathInclui é uma plataforma inclusiva de aprendizagem de Matemática, inicialmente voltada ao 6º, 7º e 8º anos. A v0.3 adiciona gestão de turmas, alunos e perfil pedagógico individual sobre a autenticação segura entregue na v0.2.
+O MathInclui é uma plataforma inclusiva para aprendizagem de Matemática do 6º ao 8º ano. A v0.4 consolida o ciclo completo de atividade: o professor cria questões, publica e atribui; o aluno resolve com tentativas e dicas progressivas; o professor acompanha participação e resultados sem ranking competitivo.
 
-## Release v0.3.0
+## Release v0.4.0
 
-- Gestão de turmas do 6º ao 8º ano.
-- Cadastro e manutenção de alunos por turma.
-- PIN de aluno armazenado com BCrypt.
-- Perfil pedagógico individual sem dados clínicos.
-- Área React `/app/gestao` para o professor.
-- Isolamento de dados por professor autenticado.
+### Professor
 
+- cria e edita atividades próprias;
+- usa questões `MULTIPLA_ESCOLHA`, `NUMERICA` e `TEXTO_CURTO`;
+- define limite padrão de tentativas, com sobrescrita opcional por questão;
+- cadastra até três dicas progressivas e explicação;
+- publica atividades válidas;
+- atribui para uma turma inteira ou para um aluno específico;
+- acompanha participação, acertos, erros finais, submissões, dicas e tempo.
+
+### Aluno
+
+- acessa atividades destinadas diretamente a ele ou à sua turma;
+- vê estados **Para fazer**, **Em andamento** e **Concluídas**;
+- retoma uma tentativa em andamento;
+- responde uma questão por vez;
+- recebe dica após erro quando disponível;
+- pode tentar novamente até o limite configurado;
+- só recebe explicação e resposta correta após acertar ou esgotar o limite;
+- visualiza o próprio resultado final.
+
+## Segurança e integridade
+
+- JWT separa `ROLE_PROFESSOR` e `ROLE_ALUNO`;
+- professor só administra recursos próprios;
+- atividade de origem `SISTEMA` publicada pode ser atribuída, mas não editada pelo professor;
+- aluno só acessa suas próprias atribuições/tentativas;
+- o frontend do aluno não recebe gabarito antecipado;
+- correção é exclusiva do backend;
+- atividade com histórico de aluno bloqueia alterações destrutivas;
+- uma única tentativa completa é permitida por atribuição/aluno na v0.4;
+- perfil pedagógico não armazena diagnóstico, laudo ou informação clínica.
+
+## Correção
+
+- **Múltipla escolha:** o aluno envia o ID da alternativa e o backend valida que ela pertence à questão.
+- **Numérica:** usa `BigDecimal`; `2`, `2.0` e `2,00` são equivalentes; formatos com ponto e vírgula simultaneamente são rejeitados.
+- **Texto curto:** normalização Unicode NFC, `trim`, colapso de espaços e comparação sem distinção de maiúsculas/minúsculas; acentos são preservados.
+
+Cada questão vale uma unidade. O percentual final é `acertos / total de questões * 100`; erros intermediários ficam no histórico de submissões e não contam como erro final.
 
 ## Stack
 
 - Java 21 + Spring Boot 3.5.6
-- Spring Security + OAuth2 Resource Server/Jose
-- React 19 + TypeScript + Vite
+- Spring Security + OAuth2 Resource Server/JWT
+- Spring Data JPA
 - PostgreSQL 17 + Flyway
-- Docker + Docker Compose
-- Nginx no frontend de produção
-
-## Base de autenticação da v0.2
-
-- cadastro de professor com e-mail + senha;
-- login de professor com BCrypt;
-- login de aluno com `username` + PIN numérico de 4 a 6 dígitos;
-- PIN e senha armazenados somente como hash BCrypt;
-- JWT de acesso + JWT de refresh;
-- refresh token com sessão persistida, rotação e revogação;
-- logout idempotente;
-- endpoint de sessão atual `GET /api/v1/auth/me`;
-- perfis `ROLE_PROFESSOR` e `ROLE_ALUNO`;
-- access token exigido nas rotas protegidas; refresh token não pode ser usado como bearer de API;
-- rate limiting local de tentativas de login;
-- recuperação de senha do professor com token aleatório e hash SHA-256 no banco;
-- frontend com entrada separada para professor e aluno;
-- migração Flyway `V6__create_auth_tables.sql`;
-- Docker Compose e variáveis de ambiente atualizados.
-
-## Executar com Docker
-
-1. Copie o arquivo de ambiente:
-
-```bash
-cp .env.example .env
-```
-
-2. Troque pelo menos `DB_PASSWORD` e `JWT_SECRET` no `.env`.
-
-3. Suba os serviços:
-
-```bash
-docker compose up --build
-```
-
-4. Acesse:
-
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8080/api/v1/system/info`
-- Health: `http://localhost:8080/actuator/health`
-
-## Fluxos de autenticação
-
-### Cadastrar professor
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/professor/register \
-  -H "Content-Type: application/json" \
-  -d '{"nome":"Professor Demo","email":"prof@escola.com","password":"SenhaForte123"}'
-```
-
-### Login do professor
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/professor/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"prof@escola.com","password":"SenhaForte123"}'
-```
-
-### Login do aluno
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/aluno/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"joao.silva","pin":"4821"}'
-```
-
-### Renovar sessão
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"COLE_O_REFRESH_TOKEN"}'
-```
-
-### Sessão atual
-
-```bash
-curl http://localhost:8080/api/v1/auth/me \
-  -H "Authorization: Bearer COLE_O_ACCESS_TOKEN"
-```
-
-### Recuperação de senha
-
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/professor/forgot-password \
-  -H "Content-Type: application/json" \
-  -d '{"email":"prof@escola.com"}'
-```
-
-No ambiente local, com `PASSWORD_RESET_LOG_TOKEN=true`, o token bruto aparece **somente no log do backend**. O banco guarda apenas o SHA-256 do token. Em produção, desative essa opção e conecte um provedor real de e-mail.
-
-## Desenvolvimento local
-
-### Backend
-
-Requer Maven 3.9+ e Java 21:
-
-```bash
-cd backend
-mvn test
-mvn spring-boot:run
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run build
-npm run dev
-```
+- JUnit 5 + Mockito + Testcontainers
+- React 19 + TypeScript + Vite
+- Vitest + Testing Library
+- Docker + Docker Compose + Nginx
 
 ## Migrações
 
 - `V1__create_core_tables.sql`: professores, turmas, alunos e perfil pedagógico.
 - `V2__create_activities.sql`: atividades, questões e alternativas.
 - `V3__create_assignments.sql`: atribuições.
-- `V4__create_attempts_and_answers.sql`: tentativas e respostas.
-- `V5__seed_initial_activities.sql`: atividade inicial de porcentagem.
-- `V6__create_auth_tables.sql`: refresh sessions e tokens de recuperação de senha.
+- `V4__create_attempts_and_answers.sql`: tentativas e respostas consolidadas.
+- `V5__seed_initial_activities.sql`: atividade inicial.
+- `V6__create_auth_tables.sql`: sessões de refresh e recuperação de senha.
+- `V7__extend_learning_flow.sql`: limites de tentativas, status da tentativa, histórico `resposta_tentativas`, constraints e índices da v0.4.
 
-## Segurança
+## Rotas principais do frontend
 
-- BCrypt para senha/PIN.
-- JWT HS256 com segredo externo ao código.
-- Access token padrão: 15 minutos.
-- Refresh token padrão: 7 dias.
-- Refresh rotation a cada renovação.
-- Revogação de todos os refresh tokens do professor após redefinição de senha.
-- Rate limit padrão: 5 falhas; bloqueio local por 15 minutos.
-- Mensagem genérica para credenciais inválidas.
-- Frontend guarda tokens em `sessionStorage`; para produção pública, a evolução recomendada é refresh token em cookie HttpOnly/SameSite.
+- Professor — gestão escolar: `/app/gestao`
+- Professor — atividades: `/app/atividades`
+- Aluno — minhas atividades: `/app/atividades-aluno`
+- Aluno — resolução: `/app/atividades-aluno/:atribuicaoId`
+- Aluno — resultado: `/app/tentativas/:tentativaId/resultado`
+
+## Executar com Docker
+
+Crie `.env` a partir de `.env.example` e preencha `DB_PASSWORD` e `JWT_SECRET` com valores locais seguros. O `.env` não deve ser commitado.
+
+```bash
+docker compose --env-file .env config -q
+docker compose --env-file .env up --build -d
+docker compose ps
+```
+
+Padrão do projeto: frontend em `http://localhost:3000`, backend em `http://localhost:8080` e PostgreSQL publicado conforme `DB_PORT` do `.env`.
+
+## Testes e verificação
+
+Backend:
+
+```bash
+cd backend
+mvn test
+```
+
+Os testes de migration usam PostgreSQL 17 via Testcontainers e exigem Docker disponível.
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run test:run
+npm run build
+```
+
+Verificadores estruturais:
+
+```bash
+python scripts/verify_project.py
+python scripts/verify_v03.py
+python scripts/verify_v04.py
+```
+
+## Critério E2E da v0.4
+
+1. Professor autentica, cria uma atividade, adiciona questões, configura tentativas/dicas, publica e atribui.
+2. Aluno autentica, visualiza a atribuição, inicia/retoma, erra e recebe dica, tenta novamente, acerta ou esgota o limite e conclui.
+3. Professor abre os resultados e visualiza participação, desempenho, submissões, dicas, tempo e erros por questão.
+4. Aluno não acessa telas/APIs administrativas e um professor não acessa recursos pertencentes a outro professor.
 
 ## Roadmap
 
-- **v0.3** — turmas, alunos e perfil pedagógico. **Concluída.**
-- **v0.4** — atividades, questões, alternativas e banco de exercícios.
-- **v0.5** — experiência do aluno, leitura em voz alta, dicas e correção.
-- **v0.6** — dashboard de progresso.
-- **v0.7** — Testcontainers, observabilidade, documentação de API e hardening.
+- **v0.3** — gestão escolar, alunos e perfil pedagógico. **Concluída.**
+- **v0.4** — atividades, questões, atribuições, experiência do aluno, correção, tentativas/dicas e resultados. **Implementada na branch de release até validação E2E.**
+- **v0.5** — acessibilidade ampliada e banco pedagógico reutilizável.
+- **v0.6** — relatórios pedagógicos longitudinais e evolução individual.
+- **v0.7** — observabilidade, documentação de API e hardening de produção.
 
-## Verificação estrutural
+## Documentação técnica
 
-```bash
-python3 scripts/verify_project.py
-python3 scripts/verify_v03.py
-```
+- Design: `docs/superpowers/specs/2026-10-15-mathinclui-v0.4-atividades-design.md`
+- Plano: `docs/superpowers/plans/2026-10-15-mathinclui-v0.4-atividades-progresso.md`
 
-## Privacidade pedagógica
-
-O MathInclui não armazena laudos ou diagnósticos clínicos. O perfil pedagógico registra somente necessidades de apoio configuradas pelo professor.
-
-## Documentação
-
-- `docs/superpowers/specs/2026-10-15-mathinclui-v0.1-design.md`
-- `docs/superpowers/plans/2026-10-15-mathinclui-v0.2-auth.md`
-- `docs/superpowers/plans/2026-10-15-mathinclui-v0.3-gestao-escolar.md`
-
-## IntelliJ IDEA — Java 21
-
-O backend exige **JDK 21**. Se o IntelliJ exibir `JVM target 5` ou usar JDK 17 como fallback:
-
-1. Abra `File > Project Structure > Project` e selecione **SDK 21** e Language level **21 / SDK default**.
-2. Em `Modules > mathinclui-backend > Dependencies`, selecione **Module SDK: Project SDK (21)**.
-3. Em `Settings > Build, Execution, Deployment > Compiler > Java Compiler`, defina o target do módulo como **21**.
-4. Em `Settings > Build Tools > Maven`, use **JDK 21** no Importer/Runner.
-5. Abra `backend/pom.xml` como projeto Maven e clique em **Reload All Maven Projects**.
-
-Confirme no terminal do IntelliJ:
-
-```powershell
-java -version
-javac -version
-```
-
-Ambos devem indicar Java 21.
-
-
-## Execução pelo IntelliJ / terminal local
-
-O Spring Boot importa opcionalmente o arquivo `.env` tanto da raiz (`./.env`) quanto da pasta pai (`../.env`). Isso permite executar o backend com o working directory na raiz do projeto ou em `backend/`.
-
-Antes de iniciar localmente:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Confirme que o `.env` contém um `JWT_SECRET` com pelo menos 24 caracteres. O arquivo `.env` não deve ser commitado.
-
-
-## v0.3 — Gestão escolar
-
-A versão 0.3 adiciona o fluxo do professor para:
-
-- criar, listar, editar e desativar turmas do 6º ao 8º ano;
-- cadastrar e listar alunos por turma;
-- gerar e redefinir PIN de acesso com BCrypt;
-- criar automaticamente um perfil pedagógico padrão por aluno;
-- configurar tamanho de fonte, leitura em voz alta, apoio visual, dicas passo a passo, repetição guiada, questões por tela, tempo ampliado e nível de apoio;
-- garantir isolamento de dados por professor autenticado;
-- acessar a nova área React em `/app/gestao`.
-
-O sistema não registra laudo, diagnóstico ou informação clínica no perfil pedagógico.
+O MathInclui mantém como princípio central a inclusão pedagógica sem rotular estudantes nem registrar dados clínicos.

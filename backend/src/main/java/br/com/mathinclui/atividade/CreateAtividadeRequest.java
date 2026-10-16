@@ -13,5 +13,9 @@ public record CreateAtividadeRequest(
         @Min(6) @Max(8) short anoEscolar,
         @NotBlank @Size(max = 60) String conteudo,
         @NotNull DificuldadeAtividade dificuldade,
-        @Min(1) int limiteTentativas
-) {}
+        @Min(1) Integer limiteTentativas
+) {
+    public CreateAtividadeRequest {
+        if (limiteTentativas == null) limiteTentativas = 3;
+    }
+}

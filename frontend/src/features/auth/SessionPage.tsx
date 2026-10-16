@@ -31,7 +31,7 @@ export function SessionPage() {
       <section className="session-card">
         <div className="session-header">
           <div>
-            <p className="card-kicker">SESSÃO AUTENTICADA • v0.3</p>
+            <p className="card-kicker">SESSÃO AUTENTICADA • v0.4</p>
             <h1>Olá, {user.nome} 👋</h1>
             <p>{user.tipo === 'PROFESSOR' ? 'Perfil de professor' : 'Perfil de aluno'} • {user.login}</p>
           </div>

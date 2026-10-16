@@ -9,7 +9,7 @@ class SystemInfoProviderTest {
     void shouldExposeCurrentApplicationIdentity() {
         var info = SystemInfoProvider.current();
         assertThat(info.name()).isEqualTo("MathInclui");
-        assertThat(info.version()).isEqualTo("0.3.0");
+        assertThat(info.version()).isEqualTo("0.4.0");
         assertThat(info.status()).isEqualTo("UP");
     }
 }

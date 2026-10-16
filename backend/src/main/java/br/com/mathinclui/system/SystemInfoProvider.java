@@ -5,6 +5,6 @@ public final class SystemInfoProvider {
     }
 
     public static SystemInfo current() {
-        return new SystemInfo("MathInclui", "0.3.0", "UP");
+        return new SystemInfo("MathInclui", "0.4.0", "UP");
     }
 }
