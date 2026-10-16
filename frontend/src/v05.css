@@ -1,0 +1,19 @@
+.library-shell { padding-top: 36px; }
+.library-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 18px; }
+.library-tabs button { border: 1px solid #cbd9e7; border-radius: 999px; padding: 10px 16px; background: #fff; color: #173f7a; font-weight: 800; cursor: pointer; }
+.library-tabs button.active { background: #173f7a; color: #fff; border-color: #173f7a; }
+.library-filters { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(170px, .9fr) minmax(220px, 1.4fr) auto; gap: 14px; align-items: end; padding: 18px; border: 1px solid #dbe7f3; border-radius: 16px; background: #f8fbff; }
+.library-filters label { display: grid; gap: 7px; font-weight: 800; color: #17324d; }
+.library-filters select, .library-filters input { width: 100%; border: 2px solid #cbd9e7; border-radius: 12px; padding: 11px 13px; background: #fff; color: #17324d; }
+.library-grid { display: grid; gap: 16px; margin-top: 22px; }
+.library-card { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.library-card h2 { margin: 0 0 8px; color: #173f7a; }
+.library-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.library-badge { display: inline-flex; padding: 6px 10px; border-radius: 999px; background: #e8f1fb; color: #173f7a; font-size: .85rem; font-weight: 800; }
+.library-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 24px; }
+
+@media (max-width: 760px) {
+  .library-filters { grid-template-columns: 1fr; }
+  .library-card { flex-direction: column; align-items: stretch; }
+  .library-pagination { flex-wrap: wrap; }
+}
