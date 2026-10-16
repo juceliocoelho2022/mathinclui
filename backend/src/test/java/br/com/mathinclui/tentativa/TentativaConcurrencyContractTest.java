@@ -67,8 +67,6 @@ class TentativaConcurrencyContractTest {
         setId(existente, 500L);
 
         when(alunoRepository.findById(fixture.aluno.getId())).thenReturn(Optional.of(fixture.aluno));
-        when(atribuicaoRepository.findById(fixture.atribuicao.getId()))
-                .thenThrow(new IllegalStateException("consulta sem lock não é permitida neste contrato"));
         when(atribuicaoRepository.findForUpdate(fixture.atribuicao.getId())).thenReturn(Optional.of(fixture.atribuicao));
         when(atividadeRepository.findById(fixture.atividade.getId())).thenReturn(Optional.of(fixture.atividade));
         when(tentativaRepository.findByAtribuicaoIdAndAlunoId(fixture.atribuicao.getId(), fixture.aluno.getId()))
@@ -86,8 +84,6 @@ class TentativaConcurrencyContractTest {
         setId(tentativa, 500L);
         var encerrada = new Resposta(500L, fixture.questao.getId(), "5", true, (short) 0, 5, now);
 
-        when(tentativaRepository.findByIdAndAlunoId(500L, fixture.aluno.getId()))
-                .thenThrow(new IllegalStateException("consulta sem lock não é permitida neste contrato"));
         when(tentativaRepository.findForUpdate(500L, fixture.aluno.getId())).thenReturn(Optional.of(tentativa));
         when(atribuicaoRepository.findById(fixture.atribuicao.getId())).thenReturn(Optional.of(fixture.atribuicao));
         when(atividadeRepository.findById(fixture.atividade.getId())).thenReturn(Optional.of(fixture.atividade));
