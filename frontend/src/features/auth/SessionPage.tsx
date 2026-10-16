@@ -59,6 +59,14 @@ export function SessionPage() {
               <p>Seu professor gerencia suas configurações pedagógicas de apoio.</p>
             )}
           </article>
+          {user.tipo === 'PROFESSOR' && (
+            <article className="card">
+              <p className="card-kicker">Atividades</p>
+              <h2>Criar, atribuir e acompanhar</h2>
+              <p>Monte questões, publique para turmas ou alunos e consulte os resultados de aprendizagem.</p>
+              <Link className="primary-button link-button" to="/app/atividades">Abrir atividades</Link>
+            </article>
+          )}
         </div>
         <Link className="text-link" to="/">Voltar ao início</Link>
       </section>

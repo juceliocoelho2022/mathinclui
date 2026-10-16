@@ -3,6 +3,7 @@ import { Link, Route, Routes } from 'react-router-dom';
 import { AuthPage } from './features/auth/AuthPage';
 import { SessionPage } from './features/auth/SessionPage';
 import { GestaoEscolarPage } from './features/gestao/GestaoEscolarPage';
+import { AtividadesProfessorPage } from './features/atividades/AtividadesProfessorPage';
 import { fetchSystemInfo, type SystemInfo } from './services/systemApi';
 import { statusLabel } from './utils/statusLabel';
 import './styles.css';
@@ -89,6 +90,7 @@ export default function App() {
       <Route path="/redefinir-senha" element={<AuthPage mode="reset" />} />
       <Route path="/app" element={<SessionPage />} />
       <Route path="/app/gestao" element={<GestaoEscolarPage />} />
+      <Route path="/app/atividades" element={<AtividadesProfessorPage />} />
       <Route path="*" element={<HomePage />} />
     </Routes>
   );
