@@ -14,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class V7MigrationIT extends PostgresIntegrationTest {
 
     @Test
-    void deveAplicarFlywayAteV7() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("7");
+    void deveAplicarFlywayAteV8() {
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("8");
     }
 
     @Test
