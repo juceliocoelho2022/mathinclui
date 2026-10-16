@@ -77,7 +77,7 @@ class TentativaServiceTest {
 
     @Test
     void erro_intermediario_deve_liberar_dica_sem_expor_gabarito() {
-        var fixture = fixture(3, 1);
+        var fixture = fixture(3, null);
         var tentativa = tentativa(fixture, 500L);
         prepararResposta(fixture, tentativa);
         when(correcaoService.corrigir(fixture.questao, "4")).thenReturn(new CorrecaoResultado(false, "4"));
