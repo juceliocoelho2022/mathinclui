@@ -2,12 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchSession, getAccessToken } from '../../services/authApi';
 import {
+  buscarAcessibilidadeAtribuicao,
+  buscarPreferenciasInterface,
+  salvarPreferenciasInterface,
+  type PreferenciaInterface,
+} from '../../services/acessibilidadeApi';
+import {
   detalharAtividadeAluno,
   iniciarAtividade,
   responderQuestao,
   type AlunoAtividadeDetalhe,
   type RespostaQuestaoResultado,
 } from '../../services/alunoAtividadesApi';
+import { AccessibilityToolbar } from './AccessibilityToolbar';
 import { QuestaoCard } from './QuestaoCard';
 
 export function ResolverAtividadePage() {
@@ -15,11 +22,13 @@ export function ResolverAtividadePage() {
   const { atribuicaoId } = useParams();
   const id = Number(atribuicaoId);
   const [atividade, setAtividade] = useState<AlunoAtividadeDetalhe | null>(null);
+  const [preferencia, setPreferencia] = useState<PreferenciaInterface | null>(null);
   const [tentativaId, setTentativaId] = useState<number | null>(null);
   const [indice, setIndice] = useState(0);
   const [resposta, setResposta] = useState('');
   const [feedback, setFeedback] = useState<RespostaQuestaoResultado | null>(null);
   const [busy, setBusy] = useState(false);
+  const [accessibilityBusy, setAccessibilityBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [inicioQuestao, setInicioQuestao] = useState(() => Date.now());
 
@@ -34,8 +43,12 @@ export function ResolverAtividadePage() {
           navigate('/app');
           return;
         }
-        const detalhe = await detalharAtividadeAluno(id);
+        const [detalhe, preferencias] = await Promise.all([
+          detalharAtividadeAluno(id),
+          buscarPreferenciasInterface(),
+        ]);
         setAtividade(detalhe);
+        setPreferencia(preferencias);
         const primeiraAberta = detalhe.questoes.findIndex((q) => !q.encerrada);
         setIndice(primeiraAberta >= 0 ? primeiraAberta : 0);
         if (detalhe.tentativaId) {
@@ -51,6 +64,22 @@ export function ResolverAtividadePage() {
   const questao = atividade?.questoes[indice] ?? null;
   const total = atividade?.questoes.length ?? 0;
   const fim = useMemo(() => Boolean(feedback?.atividadeFinalizada || atividade?.estado === 'CONCLUIDA'), [feedback, atividade?.estado]);
+
+  async function atualizarPreferencia(next: PreferenciaInterface) {
+    if (!atividade || accessibilityBusy) return;
+    setAccessibilityBusy(true);
+    setMessage('');
+    try {
+      const saved = await salvarPreferenciasInterface(next);
+      const efetiva = await buscarAcessibilidadeAtribuicao(id);
+      setPreferencia(saved);
+      setAtividade((current) => current ? { ...current, acessibilidade: efetiva } : current);
+    } catch {
+      setMessage('Não foi possível salvar sua preferência de acessibilidade.');
+    } finally {
+      setAccessibilityBusy(false);
+    }
+  }
 
   async function enviar() {
     if (!questao || !tentativaId || !resposta.trim() || busy) return;
@@ -84,7 +113,7 @@ export function ResolverAtividadePage() {
     setInicioQuestao(Date.now());
   }
 
-  if (!atividade || !questao) {
+  if (!atividade || !questao || !preferencia) {
     return <main className="page-shell"><p>{message || 'Preparando atividade…'}</p></main>;
   }
 
@@ -96,10 +125,16 @@ export function ResolverAtividadePage() {
           <span className="progress-pill">Questão {indice + 1} de {total}</span>
         </div>
         {message && <p className="form-message error">{message}</p>}
+        <AccessibilityToolbar
+          efetiva={atividade.acessibilidade}
+          preferencia={preferencia}
+          onChange={atualizarPreferencia}
+          disabled={accessibilityBusy}
+        />
         <div className="progress-track" aria-hidden="true"><span style={{ width: `${((indice + 1) / total) * 100}%` }} /></div>
         <QuestaoCard
           questao={questao}
-          perfil={atividade.perfilPedagogico}
+          acessibilidade={atividade.acessibilidade}
           resposta={resposta}
           onResposta={setResposta}
           onResponder={enviar}
