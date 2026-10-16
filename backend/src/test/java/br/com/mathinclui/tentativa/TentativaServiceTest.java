@@ -107,6 +107,7 @@ class TentativaServiceTest {
         when(respostaRepository.findByTentativaIdAndQuestaoId(500L, fixture.questao.getId())).thenReturn(Optional.empty());
         when(respostaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(historicoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(fixture.atividade.getId())).thenReturn(List.of(fixture.questao));
         when(respostaRepository.findAllByTentativaId(500L)).thenAnswer(inv -> List.of(
                 new Resposta(500L, fixture.questao.getId(), "5", true, (short) 0, 8, now)));
 
@@ -147,7 +148,6 @@ class TentativaServiceTest {
         when(atribuicaoRepository.findById(f.atribuicao.getId())).thenReturn(Optional.of(f.atribuicao));
         when(atividadeRepository.findById(f.atividade.getId())).thenReturn(Optional.of(f.atividade));
         when(questaoRepository.findByIdAndAtividadeId(f.questao.getId(), f.atividade.getId())).thenReturn(Optional.of(f.questao));
-        when(questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(f.atividade.getId())).thenReturn(List.of(f.questao));
     }
 
     private Tentativa tentativa(Fixture f, Long id) {
