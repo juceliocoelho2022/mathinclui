@@ -4,7 +4,6 @@ import br.com.mathinclui.atividade.domain.Atividade;
 import br.com.mathinclui.atividade.domain.DificuldadeAtividade;
 import br.com.mathinclui.atividade.domain.TipoOrigemAtividade;
 import br.com.mathinclui.atividade.repository.AtividadeRepository;
-import br.com.mathinclui.questao.domain.Alternativa;
 import br.com.mathinclui.questao.domain.Questao;
 import br.com.mathinclui.questao.domain.TipoQuestao;
 import br.com.mathinclui.questao.repository.AlternativaRepository;
@@ -76,7 +75,6 @@ class BibliotecaAtividadeServiceTest {
     void copiaProfundaSistemaComoRascunhoDoProfessorELevaBncc() throws Exception {
         Atividade fonte = mock(Atividade.class);
         when(fonte.isSistemaPublicada()).thenReturn(true);
-        when(fonte.getId()).thenReturn(10L);
         when(fonte.getTitulo()).thenReturn("Frações oficiais");
         when(fonte.getDescricao()).thenReturn("Descrição");
         when(fonte.getAnoEscolar()).thenReturn((short) 6);
@@ -102,8 +100,6 @@ class BibliotecaAtividadeServiceTest {
         when(alternativaRepository.findAllByQuestaoIdOrderByOrdemAsc(20L)).thenReturn(List.of());
         when(jdbc.queryForList(contains("atividade_habilidade_bncc"), any(org.springframework.jdbc.core.namedparam.SqlParameterSource.class), eq(Long.class)))
                 .thenReturn(List.of(55L));
-        when(jdbc.queryForList(contains("atividade_tag"), any(org.springframework.jdbc.core.namedparam.SqlParameterSource.class), eq(Long.class)))
-                .thenReturn(List.of());
 
         var result = service.copiar(7L, 10L);
 
