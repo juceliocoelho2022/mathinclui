@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - feature/v0.4-atividades-questoes
-      - feature/v0.5-acessibilidade-biblioteca
   pull_request:
     branches:
       - main
