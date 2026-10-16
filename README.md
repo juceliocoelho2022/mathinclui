@@ -67,6 +67,7 @@ Cada questão vale uma unidade. O percentual final é `acertos / total de quest�
 - `V5__seed_initial_activities.sql`: atividade inicial.
 - `V6__create_auth_tables.sql`: sessões de refresh e recuperação de senha.
 - `V7__extend_learning_flow.sql`: limites de tentativas, status da tentativa, histórico `resposta_tentativas`, constraints e índices da v0.4.
+- `V8__cascade_unstarted_activity_assignments.sql`: permite excluir atividade sem histórico removendo em cascata atribuições ainda sem tentativas; histórico existente continua protegido pelas FKs e pelas regras de serviço.
 
 ## Rotas principais do frontend
 
