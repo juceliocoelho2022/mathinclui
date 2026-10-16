@@ -1,5 +1,5 @@
 import { api } from './authApi';
-import type { PerfilPedagogico } from './gestaoEscolarApi';
+import type { ConfiguracaoAcessibilidade } from './acessibilidadeApi';
 import type { StatusTentativa, TipoQuestao } from './atividadesApi';
 
 export type AlunoAlternativa = {
@@ -43,7 +43,7 @@ export type AlunoAtividadeDetalhe = {
   conteudo: string;
   estado: 'PARA_FAZER' | 'EM_ANDAMENTO' | 'CONCLUIDA';
   tentativaId?: number | null;
-  perfilPedagogico?: PerfilPedagogico | null;
+  acessibilidade: ConfiguracaoAcessibilidade;
   questoes: AlunoQuestao[];
 };
 
