@@ -75,7 +75,9 @@ class ProgressoServiceTest {
         when(alunoRepository.findById(30L)).thenReturn(Optional.of(aluno1));
         when(questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(40L)).thenReturn(List.of(questao));
         when(respostaRepository.findAllByTentativaId(70L)).thenReturn(List.of(resposta));
+        when(respostaRepository.findByTentativaIdAndQuestaoId(70L, 60L)).thenReturn(Optional.of(resposta));
         when(historicoRepository.countByTentativaId(70L)).thenReturn(1L);
+        when(historicoRepository.countByTentativaIdAndQuestaoId(70L, 60L)).thenReturn(1L);
 
         var resultado = service.resultados(1L, 50L);
 
@@ -93,6 +95,7 @@ class ProgressoServiceTest {
             assertThat(q.questaoId()).isEqualTo(60L);
             assertThat(q.acertos()).isEqualTo(1);
             assertThat(q.errosFinais()).isZero();
+            assertThat(q.totalSubmissoes()).isEqualTo(1);
         });
         assertThat(resultado.toString()).doesNotContainIgnoringCase("ranking");
     }
