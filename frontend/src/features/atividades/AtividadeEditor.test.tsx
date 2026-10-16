@@ -73,16 +73,19 @@ describe('AtividadeEditor', () => {
     expect(screen.getByText(/marque a alternativa correta/i)).toBeInTheDocument();
   });
 
-  it('salva classificação curricular em chamada separada do payload base da atividade', async () => {
+  it('salva classificação curricular em chamada separada do payload base da atividade sem atualizar o pai durante o render do filho', async () => {
     const user = userEvent.setup();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     render(<AtividadeEditor atividade={atividade} onSaved={() => undefined} onCancel={() => undefined} />);
 
     await user.click(await screen.findByRole('checkbox', { name: /EF06MA07/i }));
     await user.click(screen.getByRole('checkbox', { name: /Revisão/i }));
+    expect(errorSpy.mock.calls.flat().join(' ')).not.toContain('Cannot update a component');
     await user.click(screen.getByRole('button', { name: /salvar classificação/i }));
 
     expect(mocks.atualizarClassificacaoAtividade).toHaveBeenCalledWith(7, { habilidadeIds: [1], tagIds: [2] });
     expect(mocks.atualizarAtividade).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   it('salva questão concreta no banco reutilizável usando metadados curriculares da atividade', async () => {
