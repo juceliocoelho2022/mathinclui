@@ -7,6 +7,7 @@ on:
 
 jobs:
   backend:
+    if: contains(github.event.head_commit.message, '[backend]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +21,7 @@ jobs:
         run: mvn -B test
 
   frontend:
+    if: contains(github.event.head_commit.message, '[frontend]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +39,7 @@ jobs:
         run: npm run build
 
   structural:
+    if: contains(github.event.head_commit.message, '[structural]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
