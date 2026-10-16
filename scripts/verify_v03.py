@@ -89,18 +89,26 @@ if '/app/gestao' not in app:
 if '/app/gestao' not in session:
     errors.append('session page missing navigation to school management')
 
-# Version consistency
+# Version consistency: v0.3 functionality must survive later releases.
 pom = ET.parse(ROOT / 'backend/pom.xml').getroot()
 ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
 version = pom.findtext('m:version', namespaces=ns)
 pkg = json.loads((ROOT / 'frontend/package.json').read_text(encoding='utf-8'))
 provider = need_file('backend/src/main/java/br/com/mathinclui/system/SystemInfoProvider.java')
-if version != '0.3.0':
-    errors.append(f'backend version expected 0.3.0, got {version}')
-if pkg.get('version') != '0.3.0':
-    errors.append(f'frontend version expected 0.3.0, got {pkg.get("version")}')
-if '"0.3.0"' not in provider:
-    errors.append('system info version expected 0.3.0')
+frontend_version = pkg.get('version')
+if version != frontend_version:
+    errors.append(f'backend/frontend version mismatch: {version} vs {frontend_version}')
+
+def version_tuple(value: str | None):
+    try:
+        return tuple(int(part) for part in (value or '').split('.'))
+    except ValueError:
+        return (0,)
+
+if version_tuple(version) < (0, 3, 0):
+    errors.append(f'backend version must be >= 0.3.0, got {version}')
+if version and f'"{version}"' not in provider:
+    errors.append(f'system info version must match backend version {version}')
 
 # Secret hygiene
 if (ROOT / '.env').exists():
