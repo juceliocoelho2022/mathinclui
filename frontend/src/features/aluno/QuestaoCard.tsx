@@ -70,7 +70,6 @@ export function QuestaoCard({ questao, perfil, resposta, onResposta, onResponder
       {feedback && (
         <section className={`feedback-box ${feedback.correta ? 'success' : feedback.encerrada ? 'final' : 'retry'}`} aria-live="polite">
           <strong>{feedback.correta ? 'Muito bem! Resposta correta.' : feedback.encerrada ? 'Vamos revisar esta questão.' : 'Ainda não. Tente novamente.'}</strong>
-          {!feedback.encerrada && feedback.dica && <p>{feedback.dica}</p>}
           {feedback.encerrada && feedback.explicacao && <p>{feedback.explicacao}</p>}
           {feedback.encerrada && feedback.respostaCorreta && <p><strong>Resposta correta: {feedback.respostaCorreta}</strong></p>}
         </section>
