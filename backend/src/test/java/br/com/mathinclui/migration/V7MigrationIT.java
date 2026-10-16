@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +65,17 @@ class V7MigrationIT extends PostgresIntegrationTest {
         }
     }
 
+    @Test
+    void devePermitirExcluirAtividadeComAtribuicaoSemTentativas() throws Exception {
+        try (Connection c = connection()) {
+            Fixture fixture = fixture(c);
+
+            execute(c, "DELETE FROM atividades WHERE id = ?", fixture.atividadeId());
+
+            assertThat(count(c, "SELECT COUNT(*) FROM atribuicoes WHERE id = ?", fixture.atribuicaoId())).isZero();
+        }
+    }
+
     private Fixture fixture(Connection c) throws SQLException {
         String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
         long professorId = insertReturningId(c,
@@ -94,6 +104,16 @@ class V7MigrationIT extends PostgresIntegrationTest {
             bind(ps, params);
             try (var rs = ps.executeQuery()) {
                 if (!rs.next()) throw new SQLException("INSERT did not return an id");
+                return rs.getLong(1);
+            }
+        }
+    }
+
+    private long count(Connection c, String sql, Object... params) throws SQLException {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            bind(ps, params);
+            try (var rs = ps.executeQuery()) {
+                if (!rs.next()) throw new SQLException("COUNT did not return a row");
                 return rs.getLong(1);
             }
         }
