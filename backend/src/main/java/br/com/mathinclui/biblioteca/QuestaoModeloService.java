@@ -73,8 +73,9 @@ public class QuestaoModeloService {
 
         var alternativas = new ArrayList<AlternativaModelo>();
         for (var alternativa : alternativaRepository.findAllByQuestaoIdOrderByOrdemAsc(questaoId)) {
-            alternativas.add(alternativaModeloRepository.save(new AlternativaModelo(
-                    modelo.getId(), alternativa.getTexto(), alternativa.isCorreta(), alternativa.getOrdem())));
+            var copiaAlternativa = new AlternativaModelo(modelo.getId(), alternativa.getTexto(), alternativa.isCorreta(), alternativa.getOrdem());
+            alternativaModeloRepository.save(copiaAlternativa);
+            alternativas.add(copiaAlternativa);
         }
         salvarClassificacao(modelo.getId(), request.habilidadeIds(), request.tagIds());
         return QuestaoModeloResponse.from(modelo, alternativas);
@@ -92,8 +93,9 @@ public class QuestaoModeloService {
 
         var alternativas = new ArrayList<AlternativaModelo>();
         for (var alternativa : alternativaModeloRepository.findAllByQuestaoModeloIdOrderByOrdemAsc(origem.getId())) {
-            alternativas.add(alternativaModeloRepository.save(new AlternativaModelo(
-                    copia.getId(), alternativa.getTexto(), alternativa.isCorreta(), alternativa.getOrdem())));
+            var copiaAlternativa = new AlternativaModelo(copia.getId(), alternativa.getTexto(), alternativa.isCorreta(), alternativa.getOrdem());
+            alternativaModeloRepository.save(copiaAlternativa);
+            alternativas.add(copiaAlternativa);
         }
         copiarClassificacao(origem.getId(), copia.getId());
         return QuestaoModeloResponse.from(copia, alternativas);
