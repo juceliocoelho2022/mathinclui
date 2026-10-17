@@ -3,8 +3,6 @@ package br.com.mathinclui.biblioteca;
 import br.com.mathinclui.atividade.domain.Atividade;
 import br.com.mathinclui.atividade.domain.TipoOrigemAtividade;
 import br.com.mathinclui.atividade.repository.AtividadeRepository;
-import br.com.mathinclui.questao.domain.Alternativa;
-import br.com.mathinclui.questao.domain.Questao;
 import br.com.mathinclui.questao.repository.AlternativaRepository;
 import br.com.mathinclui.questao.repository.QuestaoRepository;
 import org.springframework.http.HttpStatus;
@@ -16,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -72,14 +69,10 @@ public class BibliotecaAtividadeService {
     @Transactional
     public BibliotecaAtividadeDetalheResponse copiar(Long professorId, Long atividadeId) {
         var origem = obterVisivel(professorId, atividadeId);
-        var agora = clock.instant();
         var copia = new Atividade(professorId, origem.getTitulo(), origem.getDescricao(), origem.getAnoEscolar(),
                 origem.getConteudo(), origem.getDificuldade(), origem.getLimiteTentativas());
-        copia.marcarOrigem(origem.getId(), agora);
+        copia.marcarOrigem(origem.getId(), clock.instant());
         copia = atividadeRepository.save(copia);
-
-        copiarClassificacao(origem.getId(), copia.getId());
-        copiarQuestoes(origem.getId(), copia.getId());
         return BibliotecaAtividadeDetalheResponse.from(copia);
     }
 
@@ -115,24 +108,5 @@ public class BibliotecaAtividadeService {
                 + "WHERE ah.atividade_id = ? AND LOWER(" + coluna + ") = LOWER(?)";
         Integer total = jdbcTemplate.queryForObject(sql, Integer.class, atividadeId, valor);
         return total != null && total > 0;
-    }
-
-    private void copiarClassificacao(Long origemId, Long copiaId) {
-        jdbcTemplate.update("INSERT INTO atividade_habilidade_bncc (atividade_id, habilidade_id) SELECT ?, habilidade_id FROM atividade_habilidade_bncc WHERE atividade_id = ?", copiaId, origemId);
-        jdbcTemplate.update("INSERT INTO atividade_tag (atividade_id, tag_id) SELECT ?, tag_id FROM atividade_tag WHERE atividade_id = ?", copiaId, origemId);
-    }
-
-    private void copiarQuestoes(Long origemId, Long copiaId) {
-        for (var questaoOrigem : questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(origemId)) {
-            var copiaQuestao = new Questao(copiaId, questaoOrigem.getEnunciado(), questaoOrigem.getTipo(),
-                    questaoOrigem.getRespostaCorreta(), questaoOrigem.getExplicacao(), questaoOrigem.getDica1(),
-                    questaoOrigem.getDica2(), questaoOrigem.getDica3(), questaoOrigem.getImagemUrl(),
-                    questaoOrigem.getOrdem(), questaoOrigem.getLimiteTentativas());
-            copiaQuestao = questaoRepository.save(copiaQuestao);
-            for (var alternativaOrigem : alternativaRepository.findAllByQuestaoIdOrderByOrdemAsc(questaoOrigem.getId())) {
-                alternativaRepository.save(new Alternativa(copiaQuestao.getId(), alternativaOrigem.getTexto(),
-                        alternativaOrigem.isCorreta(), alternativaOrigem.getOrdem()));
-            }
-        }
     }
 }
