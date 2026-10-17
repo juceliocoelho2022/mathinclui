@@ -25,3 +25,12 @@ Task 2: RED run `38904241895` — test compilation failed only because `acessibi
 Task 2: complete (commits bca1a05..c4f3a50, tests: remote `mvn -B test` run `38904749428` → 60 tests, 0 failures, 0 errors; Flyway V9 and v0.4 regressions still green).
 Task 3: RED run `38905071540` — compile failed only on missing adaptation service/request plus old student detail contract.
 Task 3: complete (commits edcadfd..93ab64f, tests: remote `mvn -B test` run `38905336857` → 66 tests, 0 failures, 0 errors; student detail now uses effective accessibility).
+Task 4: RED run before `d2b98fd` — `V10LibraryMigrationIT` failed because the pedagogical-library schema/provenance objects did not exist.
+Task 4: complete (commits 2db3719..b5c1dbf, tests: remote `mvn -B test` run `38906362262` → 72 tests, 0 failures, 0 errors; PostgreSQL 17.11 migrated V1→V10).
+Task 5: RED run `38906649578` — compile failed only because activity-library/filter/classification/tag service contracts were absent.
+Task 5: intermediate GREEN run `39022234182` → 81 tests, 0 failures, 0 errors for service layer and V10 regression.
+Task 5: HTTP RED run `39022358288` — compile failed only because `BibliotecaController`, `AtividadeClassificacaoController`, `BnccService`, and `HabilidadeBnccResponse` were absent.
+Task 5: HTTP GREEN run `39022465887` → 86 tests, 0 failures, 0 errors.
+Task 5: RED run `39022682245` — two behavioral failures proved textual BNCC search and deep copy of questions/alternatives/classification were still missing; 88 tests, 2 failures, 0 errors.
+Task 5: Ruling: defer the explicit `SecurityConfig` matcher for `/api/v1/biblioteca/**` to Task 12 authorization RED; controllers already reject non-PROFESSOR subjects, so this avoids an untested security-config mutation now — cost if wrong: until Task 12 the role guard is controller-level rather than filter-chain-level.
+Task 5: complete (commits a48a318..4daa5e8, tests: remote `mvn -B test` run `39022801227` → 88 tests, 0 failures, 0 errors; deep copy and curricular text search GREEN).
