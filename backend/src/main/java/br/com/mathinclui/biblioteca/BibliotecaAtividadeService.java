@@ -3,6 +3,8 @@ package br.com.mathinclui.biblioteca;
 import br.com.mathinclui.atividade.domain.Atividade;
 import br.com.mathinclui.atividade.domain.TipoOrigemAtividade;
 import br.com.mathinclui.atividade.repository.AtividadeRepository;
+import br.com.mathinclui.questao.domain.Alternativa;
+import br.com.mathinclui.questao.domain.Questao;
 import br.com.mathinclui.questao.repository.AlternativaRepository;
 import br.com.mathinclui.questao.repository.QuestaoRepository;
 import org.springframework.http.HttpStatus;
@@ -73,6 +75,9 @@ public class BibliotecaAtividadeService {
                 origem.getConteudo(), origem.getDificuldade(), origem.getLimiteTentativas());
         copia.marcarOrigem(origem.getId(), clock.instant());
         copia = atividadeRepository.save(copia);
+
+        copiarClassificacao(origem.getId(), copia.getId());
+        copiarQuestoes(origem.getId(), copia.getId());
         return BibliotecaAtividadeDetalheResponse.from(copia);
     }
 
@@ -85,9 +90,20 @@ public class BibliotecaAtividadeService {
     private boolean correspondeBusca(Atividade atividade, String busca) {
         if (busca == null || busca.isBlank()) return true;
         var termo = busca.trim().toLowerCase(Locale.ROOT);
-        return atividade.getTitulo().toLowerCase(Locale.ROOT).contains(termo)
+        if (atividade.getTitulo().toLowerCase(Locale.ROOT).contains(termo)
                 || (atividade.getDescricao() != null && atividade.getDescricao().toLowerCase(Locale.ROOT).contains(termo))
-                || atividade.getConteudo().toLowerCase(Locale.ROOT).contains(termo);
+                || atividade.getConteudo().toLowerCase(Locale.ROOT).contains(termo)) {
+            return true;
+        }
+        var padrao = "%" + termo + "%";
+        Integer total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM atividade_habilidade_bncc ah "
+                        + "JOIN habilidades_bncc h ON h.id = ah.habilidade_id "
+                        + "WHERE ah.atividade_id = ? AND ("
+                        + "LOWER(h.codigo) LIKE ? OR LOWER(h.unidade_tematica) LIKE ? "
+                        + "OR LOWER(h.objeto_conhecimento) LIKE ? OR LOWER(h.descricao) LIKE ?)",
+                Integer.class, atividade.getId(), padrao, padrao, padrao, padrao);
+        return total != null && total > 0;
     }
 
     private boolean correspondeCurriculo(Long atividadeId, BibliotecaAtividadeFiltro filtro) {
@@ -108,5 +124,30 @@ public class BibliotecaAtividadeService {
                 + "WHERE ah.atividade_id = ? AND LOWER(" + coluna + ") = LOWER(?)";
         Integer total = jdbcTemplate.queryForObject(sql, Integer.class, atividadeId, valor);
         return total != null && total > 0;
+    }
+
+    private void copiarClassificacao(Long origemId, Long copiaId) {
+        jdbcTemplate.update(
+                "INSERT INTO atividade_habilidade_bncc (atividade_id, habilidade_id) "
+                        + "SELECT ?, habilidade_id FROM atividade_habilidade_bncc WHERE atividade_id = ?",
+                copiaId, origemId);
+        jdbcTemplate.update(
+                "INSERT INTO atividade_tag (atividade_id, tag_id) "
+                        + "SELECT ?, tag_id FROM atividade_tag WHERE atividade_id = ?",
+                copiaId, origemId);
+    }
+
+    private void copiarQuestoes(Long origemId, Long copiaId) {
+        for (var questaoOrigem : questaoRepository.findAllByAtividadeIdOrderByOrdemAsc(origemId)) {
+            var copiaQuestao = new Questao(copiaId, questaoOrigem.getEnunciado(), questaoOrigem.getTipo(),
+                    questaoOrigem.getRespostaCorreta(), questaoOrigem.getExplicacao(), questaoOrigem.getDica1(),
+                    questaoOrigem.getDica2(), questaoOrigem.getDica3(), questaoOrigem.getImagemUrl(),
+                    questaoOrigem.getOrdem(), questaoOrigem.getLimiteTentativas());
+            copiaQuestao = questaoRepository.save(copiaQuestao);
+            for (var alternativaOrigem : alternativaRepository.findAllByQuestaoIdOrderByOrdemAsc(questaoOrigem.getId())) {
+                alternativaRepository.save(new Alternativa(copiaQuestao.getId(), alternativaOrigem.getTexto(),
+                        alternativaOrigem.isCorreta(), alternativaOrigem.getOrdem()));
+            }
+        }
     }
 }
